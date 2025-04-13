@@ -1,4 +1,4 @@
-# 🚢 Rustainer — A Lightweight Portainer Alternative in 100% Rust
+# 🚢 Rustainer — A Lightweight Portainer Alternative
 
 ## 💡 What is This?
 Rustainer is a simple, fast, and minimal container management UI built entirely in Rust. It connects to the local Docker Engine via the Docker socket and offers a REST API and a web UI to:
