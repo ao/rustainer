@@ -9,61 +9,34 @@ use argon2::{
     Argon2,
 };
 use axum::{
-    extract::{Path, State},
-    http::StatusCode,
-    Extension, Json,
+    extract::State,
+    http::{StatusCode, header},
+    Json,
 };
-use chrono::Utc;
+use chrono;
 use uuid::Uuid;
-
-/// Register a new user.
-pub async fn register_user(
-    State(app_state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-    Json(request): Json<CreateUserRequest>,
-) -> Result<(StatusCode, Json<UserResponse>), StatusCode> {
-    // Only admins can create users
-    if claims.role != Role::Admin {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // For now, let's mock the user creation to avoid SQLx compile-time checks
-    let user_id = Uuid::new_v4();
-    let now = Utc::now();
-
-    // Create a mock user
-    let user = User {
-        id: user_id,
-        username: request.username,
-        password_hash: "hashed_password".to_string(),
-        role: request.role,
-        email: request.email,
-        created_at: now,
-        updated_at: now,
-        last_login: None,
-    };
-
-    Ok((StatusCode::CREATED, Json(UserResponse::from(user))))
-}
 
 /// Login a user.
 pub async fn login(
     State(app_state): State<AppState>,
     Json(request): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, StatusCode> {
-    // For now, let's mock the login to avoid SQLx compile-time checks
-    // In a real implementation, we would verify the username and password
+    // Check if the username and password match the admin credentials
+    if request.username != "admin" || request.password != "admin" {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
     
-    // Create a mock user for testing
+    // Create admin user
+    let now = chrono::Utc::now();
     let user = User {
         id: Uuid::new_v4(),
-        username: request.username.clone(),
+        username: "admin".to_string(),
         password_hash: "hashed_password".to_string(),
-        role: Role::Admin, // For testing, assume admin role
+        role: Role::Admin,
         email: Some("admin@example.com".to_string()),
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-        last_login: Some(Utc::now()),
+        created_at: now,
+        updated_at: now,
+        last_login: Some(now),
     };
 
     // Generate JWT token
@@ -78,17 +51,57 @@ pub async fn login(
     }))
 }
 
+/// Get the current user from the token.
+pub async fn get_current_user(
+    State(_app_state): State<AppState>,
+    headers: axum::http::HeaderMap,
+) -> Result<Json<UserResponse>, StatusCode> {
+    // Extract the token from the Authorization header
+    let _auth_header = headers.get(header::AUTHORIZATION)
+        .and_then(|header| header.to_str().ok())
+        .and_then(|auth_value| {
+            if auth_value.starts_with("Bearer ") {
+                Some(auth_value[7..].to_string())
+            } else {
+                None
+            }
+        })
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+    
+    // For now, just return a mock user
+    // In a real implementation, we would validate the token
+    let user = User {
+        id: Uuid::new_v4(),
+        username: "admin".to_string(),
+        password_hash: "".to_string(),
+        role: Role::Admin,
+        email: Some("admin@example.com".to_string()),
+        created_at: chrono::Utc::now(),
+        updated_at: chrono::Utc::now(),
+        last_login: Some(chrono::Utc::now()),
+    };
+    
+    Ok(Json(UserResponse::from(user)))
+}
+
 /// Get all users.
 pub async fn get_users(
-    State(app_state): State<AppState>,
-    Extension(claims): Extension<Claims>,
+    State(_app_state): State<AppState>,
+    headers: axum::http::HeaderMap,
 ) -> Result<Json<Vec<UserResponse>>, StatusCode> {
-    // Only admins can list all users
-    if claims.role != Role::Admin {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // For now, let's return mock users to avoid SQLx compile-time checks
+    // Extract the token from the Authorization header
+    let _auth_header = headers.get(header::AUTHORIZATION)
+        .and_then(|header| header.to_str().ok())
+        .and_then(|auth_value| {
+            if auth_value.starts_with("Bearer ") {
+                Some(auth_value[7..].to_string())
+            } else {
+                None
+            }
+        })
+        .ok_or(StatusCode::UNAUTHORIZED)?;
+    
+    // For now, return a mock list of users
     let users = vec![
         User {
             id: Uuid::new_v4(),
@@ -96,113 +109,31 @@ pub async fn get_users(
             password_hash: "hashed_password".to_string(),
             role: Role::Admin,
             email: Some("admin@example.com".to_string()),
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
-            last_login: Some(Utc::now()),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            last_login: Some(chrono::Utc::now()),
         },
         User {
             id: Uuid::new_v4(),
-            username: "user".to_string(),
+            username: "operator".to_string(),
+            password_hash: "hashed_password".to_string(),
+            role: Role::Operator,
+            email: Some("operator@example.com".to_string()),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
+            last_login: None,
+        },
+        User {
+            id: Uuid::new_v4(),
+            username: "viewer".to_string(),
             password_hash: "hashed_password".to_string(),
             role: Role::Viewer,
-            email: Some("user@example.com".to_string()),
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            email: Some("viewer@example.com".to_string()),
+            created_at: chrono::Utc::now(),
+            updated_at: chrono::Utc::now(),
             last_login: None,
         },
     ];
-
-    // Convert to user responses
-    let user_responses = users.into_iter().map(UserResponse::from).collect();
-
-    Ok(Json(user_responses))
-}
-
-/// Get a user by ID.
-pub async fn get_user(
-    State(app_state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-    Path(user_id): Path<Uuid>,
-) -> Result<Json<UserResponse>, StatusCode> {
-    // Admins can view any user, others can only view themselves
-    if claims.role != Role::Admin && claims.sub != user_id.to_string() {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // For now, let's return a mock user to avoid SQLx compile-time checks
-    let user = User {
-        id: user_id,
-        username: "user".to_string(),
-        password_hash: "hashed_password".to_string(),
-        role: Role::Viewer,
-        email: Some("user@example.com".to_string()),
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-        last_login: None,
-    };
-
-    Ok(Json(UserResponse::from(user)))
-}
-
-/// Delete a user.
-pub async fn delete_user(
-    State(app_state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-    Path(user_id): Path<Uuid>,
-) -> Result<StatusCode, StatusCode> {
-    // Only admins can delete users
-    if claims.role != Role::Admin {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // For now, let's just return success to avoid SQLx compile-time checks
-    Ok(StatusCode::NO_CONTENT)
-}
-
-/// Update a user.
-pub async fn update_user(
-    State(app_state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-    Path(user_id): Path<Uuid>,
-    Json(request): Json<CreateUserRequest>,
-) -> Result<Json<UserResponse>, StatusCode> {
-    // Admins can update any user, others can only update themselves
-    if claims.role != Role::Admin && claims.sub != user_id.to_string() {
-        return Err(StatusCode::FORBIDDEN);
-    }
-
-    // For now, let's return a mock updated user to avoid SQLx compile-time checks
-    let user = User {
-        id: user_id,
-        username: request.username,
-        password_hash: "hashed_password".to_string(),
-        role: request.role,
-        email: request.email,
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-        last_login: None,
-    };
-
-    Ok(Json(UserResponse::from(user)))
-}
-
-/// Get the current user.
-pub async fn get_current_user(
-    State(app_state): State<AppState>,
-    Extension(claims): Extension<Claims>,
-) -> Result<Json<UserResponse>, StatusCode> {
-    // Get the user from the database
-    // For now, let's return a mock user to avoid SQLx compile-time checks
-    let user = User {
-        id: Uuid::parse_str(&claims.sub).unwrap_or_default(),
-        username: claims.username.clone(),
-        password_hash: "".to_string(),
-        role: claims.role,
-        email: None,
-        created_at: Utc::now(),
-        updated_at: Utc::now(),
-        last_login: None,
-    };
-
-    Ok(Json(UserResponse::from(user)))
+    
+    Ok(Json(users.into_iter().map(UserResponse::from).collect()))
 }

@@ -597,6 +597,22 @@ body[data-theme='dark'] .theme-toggle:hover {
   display: flex;
   gap: 0.5rem;
 }
+/* User Management styles */
+.role-admin {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: var(--danger-color);
+}
+
+.role-operator {
+  background-color: rgba(245, 158, 11, 0.1);
+  color: var(--warning-color);
+}
+
+.role-viewer {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+}
+
 /* Stats styles */
 .stats {
   display: grid;

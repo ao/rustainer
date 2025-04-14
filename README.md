@@ -9,6 +9,7 @@ Rustainer is a simple, fast, and minimal container management UI built entirely 
 - Advanced network management with IPAM configuration
 - Deploy and manage Docker Compose stacks
 - Create and use container templates for quick deployment
+- Service proxy for domain-based routing to containers and static sites
 - Dark mode support for comfortable viewing
 
 This is a **lightweight, local-first alternative to Portainer**, built for developers and homelabbers who want speed, control, and simplicity — no Electron, no JS-heavy UI unless needed.
@@ -26,8 +27,14 @@ The easiest way to run Rustainer is using Docker Compose:
 ```bash
 docker-compose up -d
 ```
+This will build and start Rustainer, making it available at:
+- http://localhost:801 for the admin UI (HTTP)
+- https://localhost:4431 for the admin UI (HTTPS)
+- http://localhost:80 for the service proxy (HTTP)
+- https://localhost:443 for the service proxy (HTTPS)
 
-This will build and start Rustainer, making it available at http://localhost:3000.
+Note that you may need to run Docker with elevated privileges to bind to ports 80 and 443.
+This will build and start Rustainer, making it available at http://localhost:801 for the admin UI and port 80 for the service proxy.
 
 ### Building from Source
 
@@ -118,6 +125,15 @@ npm start
 - `DELETE /api/templates/:id` - Delete a template
 - `POST /api/templates/deploy` - Deploy a container from a template
 
+### Services
+- `GET /api/services` - List all services
+- `POST /api/services` - Create a new service
+- `GET /api/services/:id` - Get service details
+- `POST /api/services/:id` - Update a service
+- `DELETE /api/services/:id` - Delete a service
+- `POST /api/services/:id/enable` - Enable a service
+- `POST /api/services/:id/disable` - Disable a service
+
 ## ✨ Features
 
 ### Container Management
@@ -145,10 +161,68 @@ npm start
 - Edit compose files directly in the UI
 
 ### Container Templates
+## 🏗️ Architecture
+
+### Service Proxy Architecture
+Rustainer implements a service proxy that allows you to route traffic to different services based on domain names. The architecture consists of:
+
+1. **Service Definitions**: Each service is defined with a domain, target (container, static site, or custom URL), and configuration options.
+
+2. **Proxy Router**: The main entry point for all HTTP requests, which:
+   - Extracts the domain from the Host header
+   - Looks up the corresponding service
+   - Routes the request to the appropriate handler based on service type
+
+3. **Service Types**:
+   - **Container**: Routes requests to a Docker container
+   - **StaticSite**: Serves static files from a directory
+   - **CustomURL**: Forwards requests to an external URL
+
+4. **SSL/TLS Support**: Optional SSL/TLS termination with Let's Encrypt integration for automatic certificate generation
+
+The service proxy runs on port 80 (and 443 for HTTPS), while the admin UI runs on port 801 (and 4431 for HTTPS), allowing you to manage your services without interfering with the proxy functionality.
+
 - Create reusable container templates with predefined configurations
+## 🔄 Using the Service Proxy
+
+### Creating a Service
+
+To create a new service:
+
+1. Navigate to the Services page in the admin UI
+2. Click "Create Service"
+3. Fill in the service details:
+   - **Name**: A descriptive name for the service
+   - **Domain**: The domain name to route (e.g., example.com)
+   - **Type**: Container, StaticSite, or CustomURL
+   - **Target**: The container name, file path, or URL to route to
+   - **Port**: The port to expose the service on
+   - **SSL**: Configure SSL/TLS settings if needed
+
+### Managing Services
+
+From the Services page, you can:
+- **Enable/Disable** services with a single click
+- **Edit** service configurations
+- **Delete** services that are no longer needed
+
+### Accessing Services
+
+Once a service is created and enabled, you can access it by:
+1. Ensuring your DNS points to the Rustainer host for the domain
+2. Accessing the domain in your browser (e.g., http://example.com)
+
+The service proxy will automatically route the request to the appropriate target based on the domain.
+
 - Deploy containers from templates with customizable options
 - Organize templates by category for easy access
 - Share templates across your organization
+### Service Proxy
+- Domain-based routing to containers, static sites, and custom URLs
+- SSL/TLS support with auto-generation via Let's Encrypt
+- Custom header management for proxied requests
+- Enable/disable services with a single click
+- Centralized management of all your web services
 
 ### User Interface
 - Clean, responsive design that works on desktop and mobile
@@ -162,6 +236,7 @@ Rustainer connects directly to the Docker socket, which provides full control ov
 ## 🆕 Latest Updates
 
 ### April 2025 Update
+- Added service proxy for domain-based routing to containers and static sites
 - Added advanced network management features with IPAM configuration
 - Implemented container templates for quick deployment
 - Added Docker Compose integration for multi-container applications

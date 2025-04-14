@@ -12,6 +12,20 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface CreateUserRequest {
+  username: string;
+  password: string;
+  role: 'admin' | 'operator' | 'viewer';
+  email?: string;
+}
+
+export interface UpdateUserRequest {
+  username?: string;
+  password?: string;
+  role?: 'admin' | 'operator' | 'viewer';
+  email?: string;
+}
+
 export interface AuthResponse {
   token: string;
   user: User;
@@ -290,4 +304,47 @@ export interface UpdateStackRequest {
 
 export interface StackLogs {
   [serviceName: string]: string[];
+}
+
+// Service types
+export interface SSLConfig {
+  enabled: boolean;
+  cert_path?: string;
+  key_path?: string;
+  auto_generate: boolean;
+}
+
+export interface Service {
+  id: string;
+  name: string;
+  domain: string;
+  service_type: 'Container' | 'StaticSite' | 'CustomURL';
+  target: string;
+  port: number;
+  ssl: SSLConfig;
+  headers: Record<string, string>;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateServiceRequest {
+  name: string;
+  domain: string;
+  service_type: 'Container' | 'StaticSite' | 'CustomURL';
+  target: string;
+  port: number;
+  ssl?: SSLConfig;
+  headers?: Record<string, string>;
+}
+
+export interface UpdateServiceRequest {
+  name?: string;
+  domain?: string;
+  service_type?: 'Container' | 'StaticSite' | 'CustomURL';
+  target?: string;
+  port?: number;
+  ssl?: SSLConfig;
+  headers?: Record<string, string>;
+  enabled?: boolean;
 }

@@ -41,8 +41,8 @@ COPY --from=backend-builder /app/target/release/rustainer /app/rustainer
 # Copy the frontend build from the frontend build stage
 COPY --from=frontend-builder /app/build /app/frontend
 
-# Expose the port
-EXPOSE 3000
+# Expose the ports
+EXPOSE 801 4431 80 443
 
 # Set the entrypoint
 CMD ["/app/rustainer"]

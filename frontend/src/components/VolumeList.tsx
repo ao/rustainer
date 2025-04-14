@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Volume } from '../types';
-import { volumeApi } from '../services/api';
+import api from '../services/api';
 
 const VolumeList: React.FC = () => {
   const [volumes, setVolumes] = useState<Volume[]>([]);
@@ -10,7 +10,7 @@ const VolumeList: React.FC = () => {
   const fetchVolumes = async () => {
     try {
       setLoading(true);
-      const data = await volumeApi.getVolumes();
+      const data = await api.volumes.listVolumes();
       setVolumes(data);
       setError(null);
     } catch (err) {

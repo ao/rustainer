@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ContainerTemplate } from '../types';
-import { templateApi } from '../services/api';
+import api from '../services/api';
 
 const TemplateList: React.FC = () => {
   const [templates, setTemplates] = useState<ContainerTemplate[]>([]);
@@ -18,7 +18,7 @@ const TemplateList: React.FC = () => {
   const fetchTemplates = async () => {
     try {
       setLoading(true);
-      const data = await templateApi.getTemplates();
+      const data = await api.templates.listTemplates();
       setTemplates(data);
       
       // Extract unique categories
@@ -36,7 +36,7 @@ const TemplateList: React.FC = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this template?')) {
       try {
-        await templateApi.deleteTemplate(id);
+        await api.templates.deleteTemplate(id);
         setTemplates(templates.filter(template => template.id !== id));
       } catch (err) {
         setError('Failed to delete template');

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Container } from '../types';
-import { containerApi } from '../services/api';
+import api from '../services/api';
 
 const ContainerList: React.FC = () => {
   const [containers, setContainers] = useState<Container[]>([]);
@@ -11,7 +11,7 @@ const ContainerList: React.FC = () => {
   const fetchContainers = async () => {
     try {
       setLoading(true);
-      const data = await containerApi.getContainers();
+      const data = await api.containers.listContainers();
       setContainers(data);
       setError(null);
     } catch (err) {
@@ -31,7 +31,7 @@ const ContainerList: React.FC = () => {
 
   const handleStartContainer = async (id: string) => {
     try {
-      await containerApi.startContainer(id);
+      await api.containers.startContainer(id);
       fetchContainers();
     } catch (err) {
       console.error('Failed to start container:', err);
@@ -40,7 +40,7 @@ const ContainerList: React.FC = () => {
 
   const handleStopContainer = async (id: string) => {
     try {
-      await containerApi.stopContainer(id);
+      await api.containers.stopContainer(id);
       fetchContainers();
     } catch (err) {
       console.error('Failed to stop container:', err);
@@ -49,7 +49,7 @@ const ContainerList: React.FC = () => {
 
   const handleRestartContainer = async (id: string) => {
     try {
-      await containerApi.restartContainer(id);
+      await api.containers.restartContainer(id);
       fetchContainers();
     } catch (err) {
       console.error('Failed to restart container:', err);

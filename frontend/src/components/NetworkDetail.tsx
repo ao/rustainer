@@ -7,7 +7,7 @@ import {
   DisconnectContainerRequest,
   Container
 } from '../types';
-import { networkApi, containerApi } from '../services/api';
+import api from '../services/api';
 
 const NetworkDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,12 +42,12 @@ const NetworkDetail: React.FC = () => {
       setLoading(true);
       
       // Fetch network details
-      const networkData = await networkApi.getNetwork(networkId);
+      const networkData = await api.networks.getNetwork(networkId);
       setNetwork(networkData);
       
       // Fetch network diagnostics
       try {
-        const diagnosticsData = await networkApi.getNetworkDiagnostics(networkId);
+        const diagnosticsData = await api.networks.getNetworkDiagnostics(networkId);
         setDiagnostics(diagnosticsData);
       } catch (err) {
         console.error('Failed to fetch network diagnostics:', err);
@@ -55,7 +55,7 @@ const NetworkDetail: React.FC = () => {
       }
       
       // Fetch available containers
-      const containers = await containerApi.getContainers();
+      const containers = await api.containers.listContainers();
       
       // Filter out containers already in this network
       const networkContainerIds = new Set(networkData.containers.map(c => c.id));
@@ -76,7 +76,7 @@ const NetworkDetail: React.FC = () => {
     
     if (window.confirm(`Are you sure you want to delete network "${network.name}"?`)) {
       try {
-        await networkApi.deleteNetwork(id);
+        await api.networks.deleteNetwork(id);
         navigate('/networks');
       } catch (err) {
         setError('Failed to delete network');
@@ -89,7 +89,7 @@ const NetworkDetail: React.FC = () => {
     if (!id || !connectRequest.container_id) return;
     
     try {
-      await networkApi.connectContainer(id, connectRequest);
+      await api.networks.connectContainer(id, connectRequest);
       setShowConnectModal(false);
       setConnectRequest({
         container_id: '',
@@ -113,8 +113,8 @@ const NetworkDetail: React.FC = () => {
           container_id: containerId,
           force: false
         };
-        
-        await networkApi.disconnectContainer(id, request);
+        await api.networks.disconnectContainer(id, request);
+        fetchNetworkData(id);
         fetchNetworkData(id);
       } catch (err) {
         setError('Failed to disconnect container from network');

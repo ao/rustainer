@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Network, CreateNetworkRequest } from '../types';
-import { networkApi } from '../services/api';
+import api from '../services/api';
 
 const NetworkList: React.FC = () => {
   const [networks, setNetworks] = useState<Network[]>([]);
@@ -28,7 +28,7 @@ const NetworkList: React.FC = () => {
   const fetchNetworks = async () => {
     try {
       setLoading(true);
-      const data = await networkApi.getNetworks();
+      const data = await api.networks.listNetworks();
       setNetworks(data);
       setError(null);
     } catch (err) {
@@ -60,7 +60,7 @@ const NetworkList: React.FC = () => {
       } : undefined;
 
       // Create network
-      await networkApi.createNetwork({
+      await api.networks.createNetwork({
         ...newNetwork,
         ipam: cleanedIpam && cleanedIpam.config.length > 0 ? cleanedIpam : undefined
       });
@@ -91,7 +91,7 @@ const NetworkList: React.FC = () => {
   const handleDeleteNetwork = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this network?')) {
       try {
-        await networkApi.deleteNetwork(id);
+        await api.networks.deleteNetwork(id);
         fetchNetworks();
       } catch (err) {
         setError('Failed to delete network');
@@ -104,9 +104,9 @@ const NetworkList: React.FC = () => {
     if (window.confirm('Are you sure you want to prune unused networks?')) {
       try {
         setPruning(true);
-        const prunedNetworks = await networkApi.pruneNetworks();
+        await api.networks.pruneNetworks();
         setPruning(false);
-        alert(`Pruned ${prunedNetworks.length} networks`);
+        alert('Networks pruned successfully');
         fetchNetworks();
       } catch (err) {
         setError('Failed to prune networks');

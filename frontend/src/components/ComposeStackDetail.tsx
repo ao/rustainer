@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { composeApi } from '../services/api';
+import api from '../services/api';
 import { ComposeStack, StackLogs } from '../types';
 
 const ComposeStackDetail: React.FC = () => {
@@ -20,7 +20,7 @@ const ComposeStackDetail: React.FC = () => {
     const fetchStack = async () => {
       try {
         setLoading(true);
-        const data = await composeApi.getStack(id);
+        const data = await api.compose.getStack(id);
         setStack(data);
         
         // If there are services, select the first one by default
@@ -43,7 +43,7 @@ const ComposeStackDetail: React.FC = () => {
     
     try {
       setShowLogs(true);
-      const logsData = await composeApi.getStackLogs(id);
+      const logsData = await api.compose.getStackLogs(id);
       setLogs(logsData);
     } catch (err) {
       setError('Failed to fetch logs');
@@ -54,7 +54,9 @@ const ComposeStackDetail: React.FC = () => {
     if (!id || !stack) return;
     
     try {
-      const updatedStack = await composeApi.startStack(id);
+      await api.compose.startStack(id);
+      // Fetch the updated stack
+      const updatedStack = await api.compose.getStack(id);
       setStack(updatedStack);
     } catch (err) {
       setError('Failed to start stack');
@@ -65,7 +67,9 @@ const ComposeStackDetail: React.FC = () => {
     if (!id || !stack) return;
     
     try {
-      const updatedStack = await composeApi.stopStack(id);
+      await api.compose.stopStack(id);
+      // Fetch the updated stack
+      const updatedStack = await api.compose.getStack(id);
       setStack(updatedStack);
     } catch (err) {
       setError('Failed to stop stack');
@@ -76,7 +80,9 @@ const ComposeStackDetail: React.FC = () => {
     if (!id || !stack) return;
     
     try {
-      const updatedStack = await composeApi.restartStack(id);
+      await api.compose.restartStack(id);
+      // Fetch the updated stack
+      const updatedStack = await api.compose.getStack(id);
       setStack(updatedStack);
     } catch (err) {
       setError('Failed to restart stack');
@@ -88,7 +94,7 @@ const ComposeStackDetail: React.FC = () => {
     
     if (window.confirm('Are you sure you want to delete this stack?')) {
       try {
-        await composeApi.deleteStack(id);
+        await api.compose.deleteStack(id);
         navigate('/compose');
       } catch (err) {
         setError('Failed to delete stack');

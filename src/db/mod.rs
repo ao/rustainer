@@ -4,6 +4,10 @@
 //! and operations.
 
 use anyhow::Result;
+use argon2::{
+    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
+    Argon2,
+};
 use sqlx::sqlite::{SqlitePool, SqlitePoolOptions};
 use std::path::Path;
 use std::time::Duration;
@@ -48,12 +52,49 @@ async fn run_migrations(pool: &SqlitePool) -> Result<()> {
 
 /// Initialize the database with default data.
 pub async fn init_default_data(pool: &SqlitePool) -> Result<()> {
-    // For now, let's just log that we're initializing default data
-    // and skip the actual database operations to avoid SQLx compile-time checks
-    tracing::info!("Initializing default data (mock implementation)");
+    tracing::info!("Initializing default data");
     
-    // In a real implementation, we would check if the admin user exists
-    // and create it if it doesn't
+    // Check if admin user exists
+    let row: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM users WHERE username = 'admin'")
+        .fetch_one(pool)
+        .await?;
+    
+    let admin_exists = row.0 > 0;
+    
+    if !admin_exists {
+        tracing::info!("Creating default admin user");
+        
+        // Create a salt for password hashing
+        let salt = argon2::password_hash::SaltString::generate(&mut argon2::password_hash::rand_core::OsRng);
+        
+        // Hash the default password (admin)
+        let argon2 = Argon2::default();
+        let password_hash = argon2.hash_password(b"admin", &salt)
+            .map_err(|e| anyhow::anyhow!("Failed to hash password: {}", e))?
+            .to_string();
+        
+        // Create admin user
+        let now = chrono::Utc::now();
+        let id = uuid::Uuid::new_v4();
+        
+        sqlx::query(
+            "INSERT INTO users (id, username, password_hash, role, email, created_at, updated_at)
+             VALUES (?, ?, ?, ?, ?, ?, ?)"
+        )
+        .bind(id.to_string())
+        .bind("admin")
+        .bind(password_hash)
+        .bind("admin")
+        .bind("admin@example.com")
+        .bind(now)
+        .bind(now)
+        .execute(pool)
+        .await?;
+        
+        tracing::info!("Default admin user created");
+    } else {
+        tracing::info!("Admin user already exists");
+    }
 
     Ok(())
 }

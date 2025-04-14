@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Container, ContainerLogs, ContainerStats } from '../types';
-import { containerApi } from '../services/api';
+import api from '../services/api';
 
 const ContainerDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +16,7 @@ const ContainerDetail: React.FC = () => {
     
     try {
       setLoading(true);
-      const containers = await containerApi.getContainers();
+      const containers = await api.containers.listContainers();
       const foundContainer = containers.find(c => c.id === id);
       
       if (foundContainer) {
@@ -37,8 +37,8 @@ const ContainerDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      const logsData = await containerApi.getContainerLogs(id);
-      setLogs(logsData.logs);
+      const logsData = await api.containers.getContainerLogs(id);
+      setLogs(logsData);
     } catch (err) {
       console.error('Failed to fetch container logs:', err);
     }
@@ -48,7 +48,7 @@ const ContainerDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      const statsData = await containerApi.getContainerStats(id);
+      const statsData = await api.containers.getContainerStats(id);
       setStats(statsData);
     } catch (err) {
       console.error('Failed to fetch container stats:', err);
@@ -73,7 +73,7 @@ const ContainerDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      await containerApi.startContainer(id);
+      await api.containers.startContainer(id);
       fetchContainer();
     } catch (err) {
       console.error('Failed to start container:', err);
@@ -84,7 +84,7 @@ const ContainerDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      await containerApi.stopContainer(id);
+      await api.containers.stopContainer(id);
       fetchContainer();
     } catch (err) {
       console.error('Failed to stop container:', err);
@@ -95,7 +95,7 @@ const ContainerDetail: React.FC = () => {
     if (!id) return;
     
     try {
-      await containerApi.restartContainer(id);
+      await api.containers.restartContainer(id);
       fetchContainer();
     } catch (err) {
       console.error('Failed to restart container:', err);

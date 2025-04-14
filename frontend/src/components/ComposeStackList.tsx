@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { composeApi } from '../services/api';
+import api from '../services/api';
 import { ComposeStack } from '../types';
 
 const ComposeStackList: React.FC = () => {
@@ -11,7 +11,7 @@ const ComposeStackList: React.FC = () => {
   useEffect(() => {
     const fetchStacks = async () => {
       try {
-        const data = await composeApi.getStacks();
+        const data = await api.compose.listStacks();
         setStacks(data);
         setLoading(false);
       } catch (err) {
@@ -25,7 +25,9 @@ const ComposeStackList: React.FC = () => {
 
   const handleStartStack = async (id: string) => {
     try {
-      const updatedStack = await composeApi.startStack(id);
+      await api.compose.startStack(id);
+      // Fetch the updated stack
+      const updatedStack = await api.compose.getStack(id);
       setStacks(stacks.map(stack => stack.id === id ? updatedStack : stack));
     } catch (err) {
       setError('Failed to start stack');
@@ -34,7 +36,9 @@ const ComposeStackList: React.FC = () => {
 
   const handleStopStack = async (id: string) => {
     try {
-      const updatedStack = await composeApi.stopStack(id);
+      await api.compose.stopStack(id);
+      // Fetch the updated stack
+      const updatedStack = await api.compose.getStack(id);
       setStacks(stacks.map(stack => stack.id === id ? updatedStack : stack));
     } catch (err) {
       setError('Failed to stop stack');
@@ -43,7 +47,9 @@ const ComposeStackList: React.FC = () => {
 
   const handleRestartStack = async (id: string) => {
     try {
-      const updatedStack = await composeApi.restartStack(id);
+      await api.compose.restartStack(id);
+      // Fetch the updated stack
+      const updatedStack = await api.compose.getStack(id);
       setStacks(stacks.map(stack => stack.id === id ? updatedStack : stack));
     } catch (err) {
       setError('Failed to restart stack');
@@ -53,7 +59,7 @@ const ComposeStackList: React.FC = () => {
   const handleDeleteStack = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this stack?')) {
       try {
-        await composeApi.deleteStack(id);
+        await api.compose.deleteStack(id);
         setStacks(stacks.filter(stack => stack.id !== id));
       } catch (err) {
         setError('Failed to delete stack');
