@@ -10,7 +10,8 @@ use bollard::Docker;
 use chrono::{DateTime, TimeZone, Utc};
 use futures::stream::StreamExt;
 
-use crate::models::{Container, ContainerLogs, ContainerStats, CreateContainerRequest, PortMapping};
+use crate::models::{Container, ContainerLogs, ContainerStats, CreateContainerRequest};
+use crate::models::container::PortMapping;
 
 /// List all containers
 pub async fn list_containers(docker: &Docker) -> anyhow::Result<Vec<Container>> {
