@@ -12,14 +12,14 @@ use axum::{
 use axum::http::Request;
 use std::sync::Arc;
 
-/// Extract and validate JWT token from the Authorization header.
+/// Extract and validate JWT token from the Authorization header or cookie.
 pub async fn require_auth(
     State(jwt_config): State<Arc<JwtConfig>>,
     request: Request<Body>,
     next: Next<Body>,
 ) -> Result<Response, StatusCode> {
-    // Extract the token from the Authorization header
-    let auth_header = request
+    // Try to extract token from Authorization header first
+    let token = request
         .headers()
         .get("Authorization")
         .and_then(|header| header.to_str().ok())
@@ -30,9 +30,28 @@ pub async fn require_auth(
                 None
             }
         });
+    
+    // If no token in Authorization header, try cookie
+    let token = if token.is_none() {
+        request
+            .headers()
+            .get("Cookie")
+            .and_then(|cookie_header| cookie_header.to_str().ok())
+            .and_then(|cookie_str| {
+                for cookie in cookie_str.split(';') {
+                    let cookie = cookie.trim();
+                    if cookie.starts_with("auth_token=") {
+                        return Some(cookie[11..].to_string());
+                    }
+                }
+                None
+            })
+    } else {
+        token
+    };
 
     // If no token is provided, return 401 Unauthorized
-    let token = auth_header.ok_or(StatusCode::UNAUTHORIZED)?;
+    let token = token.ok_or(StatusCode::UNAUTHORIZED)?;
 
     // Validate the token
     let claims = jwt_config

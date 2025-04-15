@@ -39,7 +39,7 @@ RUN apt-get update && apt-get install -y \
 COPY --from=backend-builder /app/target/release/rustainer /app/rustainer
 
 # Copy the frontend build from the frontend build stage
-COPY --from=frontend-builder /app/build /app/frontend
+COPY --from=frontend-builder /app/build /app/frontend/build
 
 # Expose the ports
 EXPOSE 801 4431 80 443

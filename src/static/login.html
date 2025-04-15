@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Rustainer</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/main.js" defer></script>
+</head>
+<body>
+    <div class="app-container login-page">
+        <header class="app-header">
+            <div class="logo">
+                <h1>Rustainer</h1>
+            </div>
+            <div class="user-controls">
+                <button id="theme-toggle" class="theme-toggle">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="login-container">
+            <div class="login-card">
+                <h2>Login to Rustainer</h2>
+                <div id="error-container" style="display: none;" class="alert alert-error">
+                    Invalid username or password
+                </div>
+                
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <footer class="app-footer">
+            <p>&copy; 2025 Rustainer - A lightweight container management UI built in Rust</p>
+        </footer>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        });
+
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            try {
+                const response = await fetch('/api/auth/login-json', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                if (response.ok) {
+                    // Login successful, redirect to dashboard
+                    window.location.href = '/dashboard';
+                } else {
+                    // Show error message
+                    document.getElementById('error-container').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Login error:', error);
+                document.getElementById('error-container').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+[package]
+name = "rustainer"
+version = "0.1.0"
+edition = "2021"
+description = "A lightweight container management UI built in Rust"
+authors = ["Andrew O", "Rustainer Team"]
+
+[dependencies]
+# HTTP server and routing
+axum = { version = "0.6.18", features = ["headers", "macros", "form"] }
+tower = "0.4.13"
+tower-http = { version = "0.4.0", features = ["cors", "trace", "fs", "auth"] }
+
+# Templating
+askama = { version = "0.12", features = ["with-axum"] }
+askama_axum = "0.3"
+
+# Async runtime
+tokio = { version = "1.28.2", features = ["full"] }
+
+# Logging
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+
+[package.metadata.askama]
+dir = "src/templates"

@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustainer</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/main.js" defer></script>
+    <script src="/static/js/websocket.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <h1>Rustainer</h1>
+            </div>
+            <div class="user-controls">
+                <span class="username" id="current-username">admin</span>
+                <button id="theme-toggle" class="theme-toggle">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <button id="logout-button" class="btn btn-sm btn-outline">Logout</button>
+            </div>
+        </header>
+
+        <div class="app-content">
+            <nav class="sidebar">
+                <ul>
+                    <li id="nav-containers">
+                        <a href="/dashboard" data-route="containers">Containers</a>
+                    </li>
+                    <li id="nav-images">
+                        <a href="/images" data-route="images">Images</a>
+                    </li>
+                    <li id="nav-volumes">
+                        <a href="/volumes" data-route="volumes">Volumes</a>
+                    </li>
+                    <li id="nav-networks">
+                        <a href="/networks" data-route="networks">Networks</a>
+                    </li>
+                    <li id="nav-compose">
+                        <a href="/compose" data-route="compose">Compose</a>
+                    </li>
+                    <li id="nav-users">
+                        <a href="/users" data-route="users">Users</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <main class="main-content">
+                <!-- Containers Section -->
+                <div id="containers-section" class="page-section">
+                    <div class="page-header">
+                        <h2>Containers</h2>
+                        <div class="actions">
+                            <a href="/containers/create" class="btn btn-primary">Create Container</a>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <input type="text" id="container-search" placeholder="Search containers..." class="search-input">
+                        <div class="filter-options">
+                            <select id="status-filter">
+                                <option value="all">All</option>
+                                <option value="running">Running</option>
+                                <option value="stopped">Stopped</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="container-grid">
+                        <!-- Example container cards -->
+                        <div class="container-card" data-status="running">
+                            <div class="container-header">
+                                <h3 class="container-name">nginx-web</h3>
+                                <span class="status-badge status-running">running</span>
+                            </div>
+                            <div class="container-info">
+                                <p><strong>ID:</strong> 123456789abc</p>
+                                <p><strong>Image:</strong> nginx:latest</p>
+                            </div>
+                            <div class="container-actions">
+                                <a href="/containers/123456789abc" class="btn btn-sm">Details</a>
+                                <form action="/api/containers/123456789abc/stop" method="post" class="inline-form">
+                                    <button type="submit" class="btn btn-sm btn-warning">Stop</button>
+                                </form>
+                                <form action="/api/containers/123456789abc/restart" method="post" class="inline-form">
+                                    <button type="submit" class="btn btn-sm btn-info">Restart</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="container-card" data-status="stopped">
+                            <div class="container-header">
+                                <h3 class="container-name">redis-cache</h3>
+                                <span class="status-badge status-stopped">stopped</span>
+                            </div>
+                            <div class="container-info">
+                                <p><strong>ID:</strong> 987654321xyz</p>
+                                <p><strong>Image:</strong> redis:alpine</p>
+                            </div>
+                            <div class="container-actions">
+                                <a href="/containers/987654321xyz" class="btn btn-sm">Details</a>
+                                <form action="/api/containers/987654321xyz/start" method="post" class="inline-form">
+                                    <button type="submit" class="btn btn-sm btn-success">Start</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Images Section -->
+                <div id="images-section" class="page-section" style="display: none;">
+                    <div class="page-header">
+                        <h2>Images</h2>
+                        <div class="actions">
+                            <a href="/images/pull" class="btn btn-primary">Pull Image</a>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <input type="text" id="image-search" placeholder="Search images..." class="search-input">
+                        <div class="filter-options">
+                            <select id="image-filter">
+                                <option value="all">All</option>
+                                <option value="used">In Use</option>
+                                <option value="unused">Unused</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        <!-- Example image cards -->
+                        <div class="card" data-usage="used">
+                            <div class="card-header">
+                                <h3 class="card-title">nginx:latest</h3>
+                                <span class="badge badge-info">123.5 MB</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>ID:</strong> sha256:a6bd71f48f</p>
+                                <p><strong>Created:</strong> 3 days ago</p>
+                                <p><strong>Containers:</strong> 1 running</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-usage="used">
+                            <div class="card-header">
+                                <h3 class="card-title">postgres:14</h3>
+                                <span class="badge badge-info">376.2 MB</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>ID:</strong> sha256:9f3ec01a2d</p>
+                                <p><strong>Created:</strong> 1 week ago</p>
+                                <p><strong>Containers:</strong> 1 running</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-usage="unused">
+                            <div class="card-header">
+                                <h3 class="card-title">redis:alpine</h3>
+                                <span class="badge badge-info">32.4 MB</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>ID:</strong> sha256:7614ae9453</p>
+                                <p><strong>Created:</strong> 2 weeks ago</p>
+                                <p><strong>Containers:</strong> 0</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Volumes Section -->
+                <div id="volumes-section" class="page-section" style="display: none;">
+                    <div class="page-header">
+                        <h2>Volumes</h2>
+                        <div class="actions">
+                            <a href="/volumes/create" class="btn btn-primary">Create Volume</a>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <input type="text" id="volume-search" placeholder="Search volumes..." class="search-input">
+                        <div class="filter-options">
+                            <select id="volume-filter">
+                                <option value="all">All</option>
+                                <option value="used">In Use</option>
+                                <option value="unused">Unused</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        <!-- Example volume cards -->
+                        <div class="card" data-usage="used">
+                            <div class="card-header">
+                                <h3 class="card-title">postgres_data</h3>
+                                <span class="badge badge-success">In Use</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Driver:</strong> local</p>
+                                <p><strong>Mountpoint:</strong> /var/lib/docker/volumes/postgres_data/_data</p>
+                                <p><strong>Created:</strong> 1 week ago</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-usage="used">
+                            <div class="card-header">
+                                <h3 class="card-title">nginx_config</h3>
+                                <span class="badge badge-success">In Use</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Driver:</strong> local</p>
+                                <p><strong>Mountpoint:</strong> /var/lib/docker/volumes/nginx_config/_data</p>
+                                <p><strong>Created:</strong> 3 days ago</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-usage="unused">
+                            <div class="card-header">
+                                <h3 class="card-title">backup_data</h3>
+                                <span class="badge badge-warning">Unused</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Driver:</strong> local</p>
+                                <p><strong>Mountpoint:</strong> /var/lib/docker/volumes/backup_data/_data</p>
+                                <p><strong>Created:</strong> 2 weeks ago</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Networks Section -->
+                <div id="networks-section" class="page-section" style="display: none;">
+                    <div class="page-header">
+                        <h2>Networks</h2>
+                        <div class="actions">
+                            <a href="/networks/create" class="btn btn-primary">Create Network</a>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <input type="text" id="network-search" placeholder="Search networks..." class="search-input">
+                        <div class="filter-options">
+                            <select id="network-filter">
+                                <option value="all">All</option>
+                                <option value="custom">Custom</option>
+                                <option value="builtin">Built-in</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        <!-- Example network cards -->
+                        <div class="card" data-type="builtin">
+                            <div class="card-header">
+                                <h3 class="card-title">bridge</h3>
+                                <span class="badge badge-info">Built-in</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Driver:</strong> bridge</p>
+                                <p><strong>Subnet:</strong> 172.17.0.0/16</p>
+                                <p><strong>Containers:</strong> 2</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-type="builtin">
+                            <div class="card-header">
+                                <h3 class="card-title">host</h3>
+                                <span class="badge badge-info">Built-in</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Driver:</strong> host</p>
+                                <p><strong>Subnet:</strong> N/A (host network)</p>
+                                <p><strong>Containers:</strong> 0</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-type="custom">
+                            <div class="card-header">
+                                <h3 class="card-title">app_network</h3>
+                                <span class="badge badge-success">Custom</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Driver:</strong> bridge</p>
+                                <p><strong>Subnet:</strong> 172.20.0.0/16</p>
+                                <p><strong>Containers:</strong> 3</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Compose Section -->
+                <div id="compose-section" class="page-section" style="display: none;">
+                    <div class="page-header">
+                        <h2>Compose</h2>
+                        <div class="actions">
+                            <a href="/compose/create" class="btn btn-primary">Create Stack</a>
+                        </div>
+                    </div>
+
+                    <div class="filter-bar">
+                        <input type="text" id="stack-search" placeholder="Search stacks..." class="search-input">
+                        <div class="filter-options">
+                            <select id="stack-filter">
+                                <option value="all">All</option>
+                                <option value="running">Running</option>
+                                <option value="stopped">Stopped</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card-grid">
+                        <!-- Example stack cards -->
+                        <div class="card" data-status="running">
+                            <div class="card-header">
+                                <h3 class="card-title">web-app</h3>
+                                <span class="badge badge-success">Running</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Services:</strong> 3</p>
+                                <p><strong>Created:</strong> 1 week ago</p>
+                                <p><strong>Status:</strong> 3/3 services running</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-warning">Stop</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-status="running">
+                            <div class="card-header">
+                                <h3 class="card-title">database-cluster</h3>
+                                <span class="badge badge-success">Running</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Services:</strong> 2</p>
+                                <p><strong>Created:</strong> 2 weeks ago</p>
+                                <p><strong>Status:</strong> 2/2 services running</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-warning">Stop</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+
+                        <div class="card" data-status="stopped">
+                            <div class="card-header">
+                                <h3 class="card-title">monitoring</h3>
+                                <span class="badge badge-danger">Stopped</span>
+                            </div>
+                            <div class="card-content">
+                                <p><strong>Services:</strong> 4</p>
+                                <p><strong>Created:</strong> 1 month ago</p>
+                                <p><strong>Status:</strong> 0/4 services running</p>
+                            </div>
+                            <div class="card-actions">
+                                <button class="btn btn-sm">Details</button>
+                                <button class="btn btn-sm btn-success">Start</button>
+                                <button class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <footer class="app-footer">
+            <p>&copy; 2025 Rustainer - A lightweight container management UI built in Rust</p>
+        </footer>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', { method: 'POST' }).catch(err => console.error('Error toggling theme:', err));
+        });
+        
+        // Logout functionality
+        document.getElementById('logout-button').addEventListener('click', function() {
+            fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login';
+                })
+                .catch(err => console.error('Error logging out:', err));
+        });
+
+        // Client-side routing
+        function handleRouting() {
+            // Get current path
+            const path = window.location.pathname;
+            
+            // Default to containers
+            let route = 'containers';
+            
+            // Determine route based on path
+            if (path.startsWith('/dashboard')) {
+                route = 'containers';
+            } else if (path.startsWith('/images')) {
+                route = 'images';
+            } else if (path.startsWith('/volumes')) {
+                route = 'volumes';
+            } else if (path.startsWith('/networks')) {
+                route = 'networks';
+            } else if (path.startsWith('/compose')) {
+                route = 'compose';
+            } else if (path.startsWith('/users')) {
+                route = 'users';
+                // Redirect to the user management page
+                window.location.href = '/users';
+                return;
+            }
+            
+            // Hide all sections
+            document.querySelectorAll('.page-section').forEach(section => {
+                section.style.display = 'none';
+            });
+            
+            // Show the selected section
+            document.getElementById(`${route}-section`).style.display = 'block';
+            
+            // Update navigation
+            document.querySelectorAll('.sidebar li').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.getElementById(`nav-${route}`).classList.add('active');
+        }
+
+        // Handle navigation clicks
+        document.querySelectorAll('.sidebar a').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const route = this.getAttribute('data-route');
+                history.pushState(null, '', this.getAttribute('href'));
+                handleRouting();
+            });
+        });
+
+        // Handle browser back/forward buttons
+        window.addEventListener('popstate', handleRouting);
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Load current user info
+            fetch('/api/auth/me')
+                .then(response => {
+                    if (!response.ok) {
+                        // If not authenticated, redirect to login
+                        window.location.href = '/login';
+                        throw new Error('Not authenticated');
+                    }
+                    return response.json();
+                })
+                .then(user => {
+                    document.getElementById('current-username').textContent = user.username;
+                    
+                    // Show/hide user management link based on role
+                    const userNavItem = document.getElementById('nav-users');
+                    if (user.role !== 'admin') {
+                        userNavItem.style.display = 'none';
+                    }
+                })
+                .catch(err => console.error('Error loading user info:', err));
+            
+            // Initialize routing
+            handleRouting();
+            
+            // Setup filters for all sections
+            setupFilters();
+        });
+
+        // Setup filters for all sections
+        function setupFilters() {
+            // Container filters
+            setupSearchFilter('container-search', '.container-card', '.container-name');
+            setupSelectFilter('status-filter', '.container-card', 'status');
+            
+            // Image filters
+            setupSearchFilter('image-search', '.card[data-usage]', '.card-title');
+            setupSelectFilter('image-filter', '.card[data-usage]', 'usage');
+            
+            // Volume filters
+            setupSearchFilter('volume-search', '.card[data-usage]', '.card-title');
+            setupSelectFilter('volume-filter', '.card[data-usage]', 'usage');
+            
+            // Network filters
+            setupSearchFilter('network-search', '.card[data-type]', '.card-title');
+            setupSelectFilter('network-filter', '.card[data-type]', 'type');
+            
+            // Stack filters
+            setupSearchFilter('stack-search', '.card[data-status]', '.card-title');
+            setupSelectFilter('stack-filter', '.card[data-status]', 'status');
+        }
+
+        // Helper function to set up search filters
+        function setupSearchFilter(inputId, itemSelector, nameSelector) {
+            const searchInput = document.getElementById(inputId);
+            if (!searchInput) return;
+            
+            searchInput.addEventListener('input', function(e) {
+                const searchTerm = e.target.value.toLowerCase();
+                const items = document.querySelectorAll(itemSelector);
+                
+                items.forEach(item => {
+                    const name = item.querySelector(nameSelector).textContent.toLowerCase();
+                    if (name.includes(searchTerm)) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+        
+        // Helper function to set up select filters
+        function setupSelectFilter(selectId, itemSelector, dataAttribute) {
+            const selectElement = document.getElementById(selectId);
+            if (!selectElement) return;
+            
+            selectElement.addEventListener('change', function(e) {
+                const filterValue = e.target.value;
+                const items = document.querySelectorAll(itemSelector);
+                
+                items.forEach(item => {
+                    if (filterValue === 'all' || item.dataset[dataAttribute] === filterValue) {
+                        item.style.display = '';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

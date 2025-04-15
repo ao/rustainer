@@ -1,0 +1,86 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-list">
+    <div class="page-header">
+        <h2>Containers</h2>
+        <div class="actions">
+            <a href="/containers/create" class="btn btn-primary">Create Container</a>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <input type="text" id="container-search" placeholder="Search containers..." class="search-input">
+        <div class="filter-options">
+            <select id="status-filter">
+                <option value="all">All</option>
+                <option value="running">Running</option>
+                <option value="stopped">Stopped</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="container-grid">
+        {% for container in containers %}
+        <div class="container-card" data-status="{{ container.status }}">
+            <div class="container-header">
+                <h3 class="container-name">{{ container.name }}</h3>
+                <span class="status-badge status-{{ container.status }}">{{ container.status }}</span>
+            </div>
+            <div class="container-info">
+                <p><strong>ID:</strong> {{ container.id }}</p>
+                <p><strong>Image:</strong> {{ container.image }}</p>
+            </div>
+            <div class="container-actions">
+                <a href="/containers/{{ container.id }}" class="btn btn-sm">Details</a>
+                {% if container.status == "running" %}
+                <form action="/api/containers/{{ container.id }}/stop" method="post" class="inline-form">
+                    <button type="submit" class="btn btn-sm btn-warning">Stop</button>
+                </form>
+                <form action="/api/containers/{{ container.id }}/restart" method="post" class="inline-form">
+                    <button type="submit" class="btn btn-sm btn-info">Restart</button>
+                </form>
+                {% else %}
+                <form action="/api/containers/{{ container.id }}/start" method="post" class="inline-form">
+                    <button type="submit" class="btn btn-sm btn-success">Start</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    // Filter containers by search term
+    document.getElementById('container-search').addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase();
+        const containers = document.querySelectorAll('.container-card');
+        
+        containers.forEach(container => {
+            const name = container.querySelector('.container-name').textContent.toLowerCase();
+            if (name.includes(searchTerm)) {
+                container.style.display = '';
+            } else {
+                container.style.display = 'none';
+            }
+        });
+    });
+
+    // Filter containers by status
+    document.getElementById('status-filter').addEventListener('change', function(e) {
+        const status = e.target.value;
+        const containers = document.querySelectorAll('.container-card');
+        
+        containers.forEach(container => {
+            if (status === 'all' || container.dataset.status === status) {
+                container.style.display = '';
+            } else {
+                container.style.display = 'none';
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Rustainer</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/main.js" defer></script>
+    <script src="/static/js/websocket.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <h1>Rustainer</h1>
+            </div>
+            <div class="user-controls">
+                <span class="username" id="current-username">admin</span>
+                <button id="theme-toggle" class="theme-toggle">
+                    <span class="theme-icon">🌙</span>
+                </button>
+                <button id="logout-button" class="btn btn-sm btn-outline">Logout</button>
+            </div>
+        </header>
+
+        <div class="app-content">
+            <nav class="sidebar">
+                <ul>
+                    <li id="nav-containers">
+                        <a href="/" data-route="containers">Containers</a>
+                    </li>
+                    <li id="nav-images">
+                        <a href="/images" data-route="images">Images</a>
+                    </li>
+                    <li id="nav-volumes">
+                        <a href="/volumes" data-route="volumes">Volumes</a>
+                    </li>
+                    <li id="nav-networks">
+                        <a href="/networks" data-route="networks">Networks</a>
+                    </li>
+                    <li id="nav-compose">
+                        <a href="/compose" data-route="compose">Compose</a>
+                    </li>
+                    <li id="nav-users" class="active">
+                        <a href="/users" data-route="users">Users</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <main class="main-content">
+                <div id="users-section" class="page-section">
+                    <div class="page-header">
+                        <h2 class="page-title">User Management</h2>
+                        <div class="actions">
+                            <button id="create-user-btn" class="btn btn-primary">Create User</button>
+                        </div>
+                    </div>
+                    
+                    <p class="page-subtitle">Manage user accounts and permissions for Rustainer</p>
+
+                    <div class="filter-bar">
+                        <input type="text" id="user-search" placeholder="Search users..." class="search-input">
+                        <div class="filter-options">
+                            <select id="role-filter">
+                                <option value="all">All Roles</option>
+                                <option value="admin">Admin</option>
+                                <option value="operator">Operator</option>
+                                <option value="viewer">Viewer</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="card-grid" id="users-grid">
+                        <!-- User cards will be populated here -->
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <footer class="app-footer">
+            <p>&copy; 2025 Rustainer - A lightweight container management UI built in Rust</p>
+        </footer>
+    </div>
+
+    <!-- Create User Modal -->
+    <div id="create-user-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New User</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="create-user-form">
+                    <div class="form-group">
+                        <label for="new-username" class="form-label">Username</label>
+                        <input type="text" id="new-username" name="username" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-password" class="form-label">Password</label>
+                        <input type="password" id="new-password" name="password" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-email" class="form-label">Email (optional)</label>
+                        <input type="email" id="new-email" name="email" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="new-role" class="form-label">Role</label>
+                        <select id="new-role" name="role" class="form-control" required>
+                            <option value="admin">Admin</option>
+                            <option value="operator">Operator</option>
+                            <option value="viewer">Viewer</option>
+                        </select>
+                        <div class="form-text">
+                            Admin: Full access to all features<br>
+                            Operator: Can manage containers but not users<br>
+                            Viewer: Read-only access
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                        <button type="button" class="btn btn-outline modal-cancel">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', { method: 'POST' }).catch(err => console.error('Error toggling theme:', err));
+        });
+
+        // Logout functionality
+        document.getElementById('logout-button').addEventListener('click', function() {
+            fetch('/api/auth/logout', { method: 'POST' })
+                .then(() => {
+                    window.location.href = '/login';
+                })
+                .catch(err => console.error('Error logging out:', err));
+        });
+
+        // Modal functionality
+        const modal = document.getElementById('create-user-modal');
+        const openModalBtn = document.getElementById('create-user-btn');
+        const closeModalBtns = document.querySelectorAll('.modal-close, .modal-cancel');
+        
+        openModalBtn.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+        
+        closeModalBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+        });
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Create user form submission
+        document.getElementById('create-user-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = {
+                username: document.getElementById('new-username').value,
+                password: document.getElementById('new-password').value,
+                email: document.getElementById('new-email').value || null,
+                role: document.getElementById('new-role').value
+            };
+            
+            try {
+                const response = await fetch('/api/auth/users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    // User created successfully
+                    modal.style.display = 'none';
+                    loadUsers(); // Refresh user list
+                } else {
+                    const error = await response.json();
+                    alert(`Error creating user: ${error.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error creating user:', error);
+                alert('Failed to create user. Please try again.');
+            }
+        });
+
+        // Load users from API
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/auth/users');
+                if (response.ok) {
+                    const users = await response.json();
+                    displayUsers(users);
+                } else {
+                    console.error('Failed to load users');
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
+        }
+
+        // Display users in the grid
+        function displayUsers(users) {
+            const usersGrid = document.getElementById('users-grid');
+            usersGrid.innerHTML = '';
+            
+            if (users.length === 0) {
+                usersGrid.innerHTML = '<div class="empty-state"><p>No users found</p><p>Create a new user to get started</p></div>';
+                return;
+            }
+            
+            users.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.role = user.role.toLowerCase();
+                
+                // Get role badge color
+                let roleBadgeClass = 'badge-info';
+                if (user.role === 'admin') roleBadgeClass = 'badge-danger';
+                else if (user.role === 'operator') roleBadgeClass = 'badge-warning';
+                else if (user.role === 'viewer') roleBadgeClass = 'badge-success';
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3 class="card-title">${user.username}</h3>
+                        <span class="badge ${roleBadgeClass}">${user.role}</span>
+                    </div>
+                    <div class="card-content">
+                        <p><strong>ID:</strong> ${user.id}</p>
+                        <p><strong>Email:</strong> ${user.email || 'N/A'}</p>
+                        <p><strong>Created:</strong> ${new Date(user.created_at).toLocaleString()}</p>
+                    </div>
+                    <div class="card-actions">
+                        <button class="btn btn-sm btn-outline edit-user" data-id="${user.id}">Edit</button>
+                        <button class="btn btn-sm btn-danger delete-user" data-id="${user.id}">Delete</button>
+                    </div>
+                `;
+                
+                usersGrid.appendChild(card);
+            });
+            
+            // Add event listeners for edit and delete buttons
+            document.querySelectorAll('.edit-user').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const userId = this.dataset.id;
+                    // Implement edit user functionality
+                    alert(`Edit user ${userId} - Not implemented yet`);
+                });
+            });
+            
+            document.querySelectorAll('.delete-user').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const userId = this.dataset.id;
+                    if (confirm('Are you sure you want to delete this user?')) {
+                        try {
+                            const response = await fetch(`/api/auth/users/${userId}`, {
+                                method: 'DELETE'
+                            });
+                            
+                            if (response.ok) {
+                                loadUsers(); // Refresh user list
+                            } else {
+                                alert('Failed to delete user');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting user:', error);
+                            alert('Failed to delete user');
+                        }
+                    }
+                });
+            });
+        }
+
+        // Filter users
+        document.getElementById('user-search').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('#users-grid .card').forEach(card => {
+                const username = card.querySelector('.card-title').textContent.toLowerCase();
+                if (username.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        document.getElementById('role-filter').addEventListener('change', function() {
+            const role = this.value;
+            document.querySelectorAll('#users-grid .card').forEach(card => {
+                if (role === 'all' || card.dataset.role === role) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize theme
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Update theme icon
+            const themeIcon = document.querySelector('.theme-icon');
+            themeIcon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+            
+            // Load current user info
+            fetch('/api/auth/me')
+                .then(response => response.json())
+                .then(user => {
+                    document.getElementById('current-username').textContent = user.username;
+                })
+                .catch(err => console.error('Error loading user info:', err));
+            
+            // Load users
+            loadUsers();
+        });
+    </script>
+
+    <style>
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 10px;
+            box-shadow: 0 8px 16px var(--shadow-color);
+            width: 100%;
+            max-width: 500px;
+            animation: modal-appear 0.3s ease;
+        }
+        
+        @keyframes modal-appear {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        /* Badge styles */
+        .badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        
+        .badge-info {
+            background-color: rgba(77, 171, 247, 0.15);
+            color: var(--info-color);
+            border: 1px solid rgba(77, 171, 247, 0.3);
+        }
+        
+        .badge-success {
+            background-color: rgba(81, 207, 102, 0.15);
+            color: var(--success-color);
+            border: 1px solid rgba(81, 207, 102, 0.3);
+        }
+        
+        .badge-warning {
+            background-color: rgba(252, 196, 25, 0.15);
+            color: var(--warning-color);
+            border: 1px solid rgba(252, 196, 25, 0.3);
+        }
+        
+        .badge-danger {
+            background-color: rgba(250, 82, 82, 0.15);
+            color: var(--danger-color);
+            border: 1px solid rgba(250, 82, 82, 0.3);
+        }
+    </style>
+</body>
+</html>

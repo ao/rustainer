@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="{{ theme }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Rustainer{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="/static/js/main.js" defer></script>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="logo">
+                <h1>Rustainer</h1>
+            </div>
+            <div class="user-controls">
+                <button id="theme-toggle" class="btn btn-icon">
+                    <span class="theme-icon">🌙</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="app-content">
+            <nav class="sidebar">
+                <ul>
+                    <li class="active">
+                        <a href="/">Containers</a>
+                    </li>
+                    <li>
+                        <a href="/images">Images</a>
+                    </li>
+                    <li>
+                        <a href="/volumes">Volumes</a>
+                    </li>
+                    <li>
+                        <a href="/networks">Networks</a>
+                    </li>
+                    <li>
+                        <a href="/compose">Compose</a>
+                    </li>
+                </ul>
+            </nav>
+
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <footer class="app-footer">
+            <p>&copy; 2025 Rustainer - A lightweight container management UI built in Rust</p>
+        </footer>
+    </div>
+
+    <script>
+        document.getElementById('theme-toggle').addEventListener('click', function() {
+            fetch('/api/theme/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(() => {
+                window.location.reload();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -88,8 +88,21 @@ impl FromRow<'_, SqliteRow> for User {
         let role_str: String = row.try_get("role")?;
         let role = Role::from_str(&role_str).unwrap_or(Role::Viewer);
         
+        // Get the ID as a string and parse it to UUID
+        let id_str: String = row.try_get("id")?;
+        let id = match Uuid::parse_str(&id_str) {
+            Ok(uuid) => uuid,
+            Err(e) => {
+                tracing::error!("Failed to parse UUID from string '{}': {}", id_str, e);
+                return Err(sqlx::Error::ColumnDecode {
+                    index: "id".to_string(),
+                    source: Box::new(e),
+                });
+            }
+        };
+        
         Ok(User {
-            id: row.try_get("id")?,
+            id,
             username: row.try_get("username")?,
             password_hash: row.try_get("password_hash")?,
             role,
