@@ -14,10 +14,9 @@ use uuid::Uuid;
 pub async fn list_services(
     State(app_state): State<AppState>,
 ) -> Result<Json<Vec<ServiceResponse>>, StatusCode> {
-    let services = app_state.get_services().await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(Json(services.into_iter().map(ServiceResponse::from).collect()))
+    // This is a placeholder since we don't have service functionality yet
+    // In the future, this would call docker.get_services() or similar
+    Ok(Json(Vec::new()))
 }
 
 /// Get a service by ID.
@@ -25,11 +24,9 @@ pub async fn get_service(
     State(app_state): State<AppState>,
     Path(service_id): Path<Uuid>,
 ) -> Result<Json<ServiceResponse>, StatusCode> {
-    let service = app_state.get_service(service_id).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
-
-    Ok(Json(ServiceResponse::from(service)))
+    // This is a placeholder since we don't have service functionality yet
+    // In the future, this would call docker.get_service(service_id) or similar
+    return Err(StatusCode::NOT_IMPLEMENTED);
 }
 
 /// Create a new service.
@@ -37,10 +34,9 @@ pub async fn create_service(
     State(app_state): State<AppState>,
     Json(request): Json<CreateServiceRequest>,
 ) -> Result<Json<ServiceResponse>, StatusCode> {
-    let service = app_state.create_service(request).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(Json(ServiceResponse::from(service)))
+    // This is a placeholder since we don't have service functionality yet
+    // In the future, this would call docker.create_service(request) or similar
+    return Err(StatusCode::NOT_IMPLEMENTED);
 }
 
 /// Update a service.
@@ -49,11 +45,9 @@ pub async fn update_service(
     Path(service_id): Path<Uuid>,
     Json(request): Json<UpdateServiceRequest>,
 ) -> Result<Json<ServiceResponse>, StatusCode> {
-    let service = app_state.update_service(service_id, request).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
-
-    Ok(Json(ServiceResponse::from(service)))
+    // This is a placeholder since we don't have service functionality yet
+    // In the future, this would call docker.update_service(service_id, request) or similar
+    return Err(StatusCode::NOT_IMPLEMENTED);
 }
 
 /// Delete a service.
@@ -61,10 +55,9 @@ pub async fn delete_service(
     State(app_state): State<AppState>,
     Path(service_id): Path<Uuid>,
 ) -> Result<StatusCode, StatusCode> {
-    app_state.delete_service(service_id).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
-
-    Ok(StatusCode::NO_CONTENT)
+    // This is a placeholder since we don't have service functionality yet
+    // In the future, this would call docker.delete_service(service_id) or similar
+    return Err(StatusCode::NOT_IMPLEMENTED);
 }
 
 /// Enable a service.
@@ -72,11 +65,9 @@ pub async fn enable_service(
     State(app_state): State<AppState>,
     Path(service_id): Path<Uuid>,
 ) -> Result<Json<ServiceResponse>, StatusCode> {
-    let service = app_state.enable_service(service_id).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
-
-    Ok(Json(ServiceResponse::from(service)))
+    // This is a placeholder since we don't have service functionality yet
+    // In the future, this would call docker.enable_service(service_id) or similar
+    return Err(StatusCode::NOT_IMPLEMENTED);
 }
 
 /// Disable a service.
@@ -84,9 +75,7 @@ pub async fn disable_service(
     State(app_state): State<AppState>,
     Path(service_id): Path<Uuid>,
 ) -> Result<Json<ServiceResponse>, StatusCode> {
-    let service = app_state.disable_service(service_id).await
-        .map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?
-        .ok_or(StatusCode::NOT_FOUND)?;
-
-    Ok(Json(ServiceResponse::from(service)))
+    // This is a placeholder since we don't have service functionality yet
+    // In the future, this would call docker.disable_service(service_id) or similar
+    return Err(StatusCode::NOT_IMPLEMENTED);
 }

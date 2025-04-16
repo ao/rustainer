@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Editor</title>
+</head>
+<body>
+    <h1>Simple Editor</h1>
+    
+    <div>
+        <p>Is Edit: {{ is_edit }}</p>
+        
+        {% if stack %}
+            <h2>Stack Information</h2>
+            <p>Name: {{ stack.name }}</p>
+            <p>Status: {{ stack.status }}</p>
+            
+            {% if stack.environment %}
+                <h3>Environment Variables</h3>
+                <ul>
+                    {% for env_var in stack.environment %}
+                        <li>{{ env_var.0 }}: {{ env_var.1 }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% else %}
+            <p>No stack information available.</p>
+        {% endif %}
+        
+        {% if compose_content %}
+            <h2>Compose Content</h2>
+            <pre>{{ compose_content }}</pre>
+        {% else %}
+            <p>No compose content available.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

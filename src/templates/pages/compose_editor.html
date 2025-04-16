@@ -1,0 +1,449 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Create{% endif %} Docker Compose Stack - Rustainer{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">{% if is_edit %}Edit Stack: {{ stack.name }}{% else %}Create New Stack{% endif %}</h1>
+        <div>
+            <a href="{% if is_edit %}/compose/{{ stack.id }}{% else %}/compose{% endif %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 shadow-md rounded-lg overflow-hidden">
+        <div class="p-6">
+            <form id="compose-form" hx-{% if is_edit %}put{% else %}post{% endif %}="/api/compose{% if is_edit %}/{{ stack.id }}{% endif %}" hx-swap="outerHTML" hx-target="#compose-form">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Stack Name</label>
+                        <input 
+                            type="text" 
+                            id="name" 
+                            name="name" 
+                            value="{% if is_edit %}{{ stack.name }}{% endif %}" 
+                            class="form-input w-full rounded-md" 
+                            required
+                            {% if is_edit %}readonly{% endif %}
+                        >
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Options</label>
+                        <div class="flex items-center space-x-4">
+                            <label class="inline-flex items-center">
+                                <input 
+                                    type="checkbox" 
+                                    name="{% if is_edit %}restart{% else %}start{% endif %}" 
+                                    value="true" 
+                                    class="form-checkbox rounded text-blue-600"
+                                >
+                                <span class="ml-2">{% if is_edit %}Restart stack after update{% else %}Start stack after creation{% endif %}</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-1">
+                        <label for="compose_content" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Docker Compose File</label>
+                        <div class="flex space-x-2">
+                            <button type="button" id="format-yaml" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                                <i class="fas fa-code mr-1"></i>Format YAML
+                            </button>
+                            <button type="button" id="load-template" class="text-xs text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
+                                <i class="fas fa-file-import mr-1"></i>Load Template
+                            </button>
+                        </div>
+                    </div>
+                    <div class="relative">
+                        <textarea 
+                            id="compose_content" 
+                            name="compose_content" 
+                            rows="20" 
+                            class="form-textarea w-full rounded-md font-mono text-sm" 
+                            required
+                        >{% if is_edit %}{{ compose_content }}{% else %}version: '3'
+
+services:
+  # Define your services here
+  web:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+    restart: unless-stopped
+
+  # Add more services as needed
+  # db:
+  #   image: postgres:latest
+  #   environment:
+  #     POSTGRES_PASSWORD: example
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+
+# Define volumes if needed
+volumes:
+  # postgres-data:
+{% endif %}</textarea>
+                        <div id="validation-error" class="hidden absolute bottom-0 left-0 right-0 bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 p-2 border-t border-red-200 dark:border-red-800"></div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">Environment Variables</label>
+                        <button type="button" id="add-env-var" class="text-xs text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
+                            <i class="fas fa-plus mr-1"></i>Add Variable
+                        </button>
+                    </div>
+                    <div id="env-vars-container" class="space-y-2">
+                        {% if is_edit %}
+                            {% if stack %}
+                                {% if stack.environment %}
+                                    {% for env_var in stack.environment %}
+                                        <div class="flex space-x-2 env-var-row">
+                                            <input type="text" name="env_keys[]" value="{{ env_var.0 }}" placeholder="Key" class="form-input rounded-md w-1/3">
+                                            <input type="text" name="env_values[]" value="{{ env_var.1 }}" placeholder="Value" class="form-input rounded-md w-2/3">
+                                            <button type="button" class="remove-env-var text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="validate-compose" class="btn btn-secondary">
+                        <i class="fas fa-check mr-2"></i>Validate
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save mr-2"></i>{% if is_edit %}Update{% else %}Create{% endif %} Stack
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Template Selection Modal -->
+    <div id="template-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-2xl">
+            <div class="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                <h3 class="text-lg font-semibold">Select a Template</h3>
+                <button id="close-template-modal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-4 max-h-96 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Template items will be loaded here -->
+                    <div class="template-item bg-gray-50 dark:bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600" data-template="nginx">
+                        <h4 class="font-semibold">Nginx Web Server</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Basic Nginx web server with volume mount</p>
+                    </div>
+                    <div class="template-item bg-gray-50 dark:bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600" data-template="wordpress">
+                        <h4 class="font-semibold">WordPress with MySQL</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">WordPress with MySQL database</p>
+                    </div>
+                    <div class="template-item bg-gray-50 dark:bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600" data-template="postgres">
+                        <h4 class="font-semibold">PostgreSQL Database</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">PostgreSQL database with persistent volume</p>
+                    </div>
+                    <div class="template-item bg-gray-50 dark:bg-gray-700 p-4 rounded-lg cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600" data-template="redis">
+                        <h4 class="font-semibold">Redis Cache</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Redis cache server with persistence</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add environment variable
+        document.getElementById('add-env-var').addEventListener('click', function() {
+            const container = document.getElementById('env-vars-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'flex space-x-2 env-var-row';
+            newRow.innerHTML = `
+                <input type="text" name="env_keys[]" placeholder="Key" class="form-input rounded-md w-1/3">
+                <input type="text" name="env_values[]" placeholder="Value" class="form-input rounded-md w-2/3">
+                <button type="button" class="remove-env-var text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            container.appendChild(newRow);
+            
+            // Add event listener to the new remove button
+            newRow.querySelector('.remove-env-var').addEventListener('click', function() {
+                container.removeChild(newRow);
+            });
+        });
+        
+        // Remove environment variable
+        document.querySelectorAll('.remove-env-var').forEach(button => {
+            button.addEventListener('click', function() {
+                const row = this.closest('.env-var-row');
+                row.parentNode.removeChild(row);
+            });
+        });
+        
+        // Format YAML
+        document.getElementById('format-yaml').addEventListener('click', function() {
+            const textarea = document.getElementById('compose_content');
+            try {
+                // This is a simple formatting approach - in a real app you'd use a proper YAML formatter
+                const content = textarea.value;
+                const lines = content.split('\n');
+                let formattedLines = [];
+                let indentLevel = 0;
+                
+                for (const line of lines) {
+                    const trimmedLine = line.trim();
+                    
+                    // Decrease indent for closing elements
+                    if (trimmedLine.startsWith('}') || trimmedLine === ']' || trimmedLine === '---') {
+                        indentLevel = Math.max(0, indentLevel - 1);
+                    }
+                    
+                    // Add the line with proper indentation
+                    if (trimmedLine.length > 0) {
+                        formattedLines.push('  '.repeat(indentLevel) + trimmedLine);
+                    } else {
+                        formattedLines.push('');
+                    }
+                    
+                    // Increase indent for opening elements
+                    if (trimmedLine.endsWith('{') || trimmedLine.endsWith('[') || trimmedLine === '---') {
+                        indentLevel++;
+                    }
+                }
+                
+                textarea.value = formattedLines.join('\n');
+            } catch (e) {
+                console.error('Error formatting YAML:', e);
+            }
+        });
+        
+        // Validate compose file
+        document.getElementById('validate-compose').addEventListener('click', function() {
+            const content = document.getElementById('compose_content').value;
+            const errorDiv = document.getElementById('validation-error');
+            
+            // Send validation request to the server
+            fetch('/api/compose/validate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ compose_content: content }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.valid) {
+                    errorDiv.textContent = 'Validation successful!';
+                    errorDiv.classList.remove('hidden', 'bg-red-100', 'text-red-800', 'dark:bg-red-900', 'dark:text-red-200', 'border-red-200', 'dark:border-red-800');
+                    errorDiv.classList.add('bg-green-100', 'text-green-800', 'dark:bg-green-900', 'dark:text-green-200', 'border-green-200', 'dark:border-green-800');
+                    setTimeout(() => {
+                        errorDiv.classList.add('hidden');
+                    }, 3000);
+                } else {
+                    errorDiv.textContent = data.error || 'Invalid Docker Compose file';
+                    errorDiv.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'dark:bg-green-900', 'dark:text-green-200', 'border-green-200', 'dark:border-green-800');
+                    errorDiv.classList.add('bg-red-100', 'text-red-800', 'dark:bg-red-900', 'dark:text-red-200', 'border-red-200', 'dark:border-red-800');
+                }
+            })
+            .catch(error => {
+                errorDiv.textContent = 'Error validating: ' + error.message;
+                errorDiv.classList.remove('hidden');
+            });
+        });
+        
+        // Template modal
+        const templateModal = document.getElementById('template-modal');
+        
+        document.getElementById('load-template').addEventListener('click', function() {
+            templateModal.classList.remove('hidden');
+        });
+        
+        document.getElementById('close-template-modal').addEventListener('click', function() {
+            templateModal.classList.add('hidden');
+        });
+        
+        // Close modal when clicking outside
+        templateModal.addEventListener('click', function(e) {
+            if (e.target === templateModal) {
+                templateModal.classList.add('hidden');
+            }
+        });
+        
+        // Template selection
+        document.querySelectorAll('.template-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const templateType = this.getAttribute('data-template');
+                let templateContent = '';
+                
+                // Define templates
+                const templates = {
+                    nginx: `version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./html:/usr/share/nginx/html
+    restart: unless-stopped
+
+volumes:
+  nginx-data:`,
+                    wordpress: `version: '3'
+
+services:
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpress
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress-data:/var/www/html
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: mysql:5.7
+    volumes:
+      - db-data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: somewordpress
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    restart: unless-stopped
+
+volumes:
+  wordpress-data:
+  db-data:`,
+                    postgres: `version: '3'
+
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: example
+      POSTGRES_USER: postgres
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres-data:`,
+                    redis: `version: '3'
+
+services:
+  redis:
+    image: redis:latest
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+volumes:
+  redis-data:`
+                };
+                
+                // Set the template content
+                if (templates[templateType]) {
+                    document.getElementById('compose_content').value = templates[templateType];
+                }
+                
+                // Close the modal
+                templateModal.classList.add('hidden');
+            });
+        });
+        
+        // Form submission
+        document.getElementById('compose-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Collect form data
+            const formData = new FormData(this);
+            const jsonData = {
+                name: formData.get('name'),
+                compose_content: formData.get('compose_content'),
+            };
+            
+            // Add start/restart flag
+            if (formData.has('start')) {
+                jsonData.start = true;
+            } else if (formData.has('restart')) {
+                jsonData.restart = true;
+            }
+            
+            // Add environment variables
+            const envKeys = formData.getAll('env_keys[]');
+            const envValues = formData.getAll('env_values[]');
+            
+            if (envKeys.length > 0) {
+                jsonData.environment = {};
+                for (let i = 0; i < envKeys.length; i++) {
+                    if (envKeys[i].trim()) {
+                        jsonData.environment[envKeys[i]] = envValues[i] || '';
+                    }
+                }
+            }
+            
+            // Send the request
+            const url = this.getAttribute('hx-post') || this.getAttribute('hx-put');
+            const method = this.getAttribute('hx-post') ? 'POST' : 'PUT';
+            
+            fetch(url, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(jsonData),
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Redirect to the stack detail page or list page
+                    if (method === 'POST') {
+                        response.json().then(data => {
+                            window.location.href = `/compose/${data.id}`;
+                        });
+                    } else {
+                        const stackId = url.split('/').pop();
+                        window.location.href = `/compose/${stackId}`;
+                    }
+                } else {
+                    return response.json().then(data => {
+                        throw new Error(data.error || 'Failed to save stack');
+                    });
+                }
+            })
+            .catch(error => {
+                const errorDiv = document.getElementById('validation-error');
+                errorDiv.textContent = error.message;
+                errorDiv.classList.remove('hidden');
+            });
+        });
+    });
+</script>
+{% endblock %}

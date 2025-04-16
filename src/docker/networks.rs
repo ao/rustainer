@@ -97,7 +97,7 @@ pub async fn create_network(
     };
     
     let response = docker.create_network(create_opts).await?;
-    Ok(response.id.unwrap_or_default())
+    Ok(response.id)
 }
 
 /// Get network details

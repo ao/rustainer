@@ -8,3 +8,4 @@ pub use containers::*;
 pub use networks::*;
 pub use volumes::*;
 pub use compose::*;
+pub use templates::*;

@@ -34,6 +34,11 @@ impl DockerEventListener {
         Ok(Self { manager, docker })
     }
 
+    /// Create a new Docker event listener with an existing Docker client.
+    pub fn with_docker(manager: WebSocketManager, docker: Docker) -> Self {
+        Self { manager, docker }
+    }
+
     /// Start listening for Docker events.
     pub async fn start(&self) -> Result<(), BollardError> {
         info!("Starting Docker event listener");

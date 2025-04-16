@@ -4,8 +4,7 @@ use std::sync::Arc;
 use axum::{
     routing::{get, post},
     Router,
-    response::{IntoResponse, Html, Redirect, Response},
-    http::StatusCode,
+    response::{IntoResponse, Html, Redirect},
 };
 use tower_http::services::ServeDir;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
@@ -17,6 +16,8 @@ mod config;
 mod auth;
 mod models;
 mod db;
+mod docker;
+mod api;
 
 #[tokio::main]
 async fn main() {
@@ -60,14 +61,11 @@ async fn main() {
     // Create the app state
     let app_state = app_state::AppState::new(db, jwt_config.clone());
 
-    // Create Docker event listener
-    let docker_event_listener = match websocket::DockerEventListener::new(app_state.ws_manager.clone()) {
-        Ok(listener) => listener,
-        Err(e) => {
-            tracing::error!("Failed to create Docker event listener: {}", e);
-            std::process::exit(1);
-        }
-    };
+    // Create Docker event listener using the Docker client from app_state
+    let docker_event_listener = websocket::DockerEventListener::with_docker(
+        app_state.ws_manager.clone(),
+        (*app_state.docker).clone(),
+    );
 
     // Start Docker event listener in a separate task
     let docker_event_task = tokio::spawn(async move {
@@ -89,11 +87,27 @@ async fn main() {
         .route("/me", get(auth::handlers::get_current_user))
         .route("/users", get(auth::handlers::get_users));
 
+    // Create API routes for Docker Compose
+    let compose_api_router = Router::new()
+        .route("/", get(crate::api::compose::list_compose_stacks))
+        .route("/", post(crate::api::compose::create_compose_stack))
+        .route("/validate", post(crate::api::compose::validate_compose_file))
+        .route("/:id", get(crate::api::compose::get_compose_stack))
+        .route("/:id", post(crate::api::compose::update_compose_stack))
+        .route("/:id", post(crate::api::compose::delete_compose_stack))
+        .route("/:id/start", post(crate::api::compose::start_compose_stack))
+        .route("/:id/stop", post(crate::api::compose::stop_compose_stack))
+        .route("/:id/restart", post(crate::api::compose::restart_compose_stack))
+        .route("/:id/logs", get(crate::api::compose::get_compose_stack_logs))
+        .route("/:id/scale", post(crate::api::compose::scale_compose_stack));
+
     // Create web routes
     let web_router = Router::new()
         .route("/api/theme/toggle", post(web::handlers::theme_toggle_handler))
         .route("/ws", get(websocket::ws_handler))
-        .nest("/api/auth", protected_auth_routes);
+        .route("/test", get(web::test_handler))
+        .nest("/api/auth", protected_auth_routes)
+        .nest("/api/compose", compose_api_router);
 
     // Create a handler for serving the login page
     async fn serve_login_page() -> axum::response::Html<String> {
@@ -131,8 +145,12 @@ async fn main() {
         .route("/images", get(serve_index_html))
         .route("/volumes", get(serve_index_html))
         .route("/networks", get(serve_index_html))
-        .route("/compose", get(serve_index_html))
         .route("/users", get(serve_user_management_page))
+        // Docker Compose UI routes
+        .route("/compose", get(web::compose_list_handler))
+        .route("/compose/create", get(web::compose_create_handler))
+        .route("/compose/:id", get(web::compose_detail_handler))
+        .route("/compose/:id/edit", get(web::compose_edit_handler))
         // Add auth middleware
         .layer(axum::middleware::from_fn_with_state(
             jwt_config.clone(),

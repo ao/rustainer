@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Environment Variables</title>
+</head>
+<body>
+    <h1>Environment Variables</h1>
+    
+    {% if has_env %}
+        <ul>
+            {% for env_var in env_vars %}
+                <li>{{ env_var.0 }}: {{ env_var.1 }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No environment variables.</p>
+    {% endif %}
+</body>
+</html>
