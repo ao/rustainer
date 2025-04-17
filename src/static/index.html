@@ -11,7 +11,7 @@
 <body>
     <div class="app-container">
         <header class="app-header">
-            <div class="logo">
+            <div class="logo" onclick="javascript:window.location.href='/';" style="cursor: pointer;">
                 <h1>Rustainer</h1>
             </div>
             <div class="user-controls">
@@ -26,8 +26,11 @@
         <div class="app-content">
             <nav class="sidebar">
                 <ul>
+                    <li id="nav-applications">
+                        <a href="/applications" data-route="applications">Applications</a>
+                    </li>
                     <li id="nav-containers">
-                        <a href="/dashboard" data-route="containers">Containers</a>
+                        <a href="/containers" data-route="containers">Containers</a>
                     </li>
                     <li id="nav-images">
                         <a href="/images" data-route="images">Images</a>
@@ -437,10 +440,14 @@
             const path = window.location.pathname;
             
             // Default to containers
-            let route = 'containers';
+            let route = 'applications';
             
             // Determine route based on path
-            if (path.startsWith('/dashboard')) {
+            if (path.startsWith('/')) {
+                route = 'application';
+            } else if (path.startsWith('/applications')) {
+                route = 'applications';
+            } else if (path.startsWith('/containers')) {
                 route = 'containers';
             } else if (path.startsWith('/images')) {
                 route = 'images';

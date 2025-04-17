@@ -1,0 +1,14 @@
+[general]
+# The directory where templates are stored
+dir = "src/templates"
+
+# The syntax to use for templates
+syntax = "askama"
+
+# Whether to escape HTML special characters in expressions
+escape = "html"
+
+# Custom filters
+[filters]
+as_str = "crate::templates::filters::as_str"
+option_to_string = "crate::templates::filters::option_to_string"

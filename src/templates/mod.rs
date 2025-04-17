@@ -4,6 +4,8 @@ use axum::{
     response::{Html, IntoResponse, Response},
 };
 
+pub mod filters;
+
 // Base template context
 #[derive(Template)]
 #[template(path = "layouts/base.html")]
@@ -24,8 +26,17 @@ pub struct UserContext {
 #[derive(Template)]
 #[template(path = "pages/login.html")]
 pub struct LoginTemplate {
-    pub error: Option<String>,
+    pub error_message: String,
     pub theme: String,
+}
+
+impl LoginTemplate {
+    pub fn new(error: Option<String>, theme: String) -> Self {
+        Self {
+            error_message: error.unwrap_or_default(),
+            theme,
+        }
+    }
 }
 
 // Container list template

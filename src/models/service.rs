@@ -2,6 +2,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt;
 use uuid::Uuid;
 
 /// Service type for routing requests.
@@ -13,6 +14,27 @@ pub enum ServiceType {
     StaticSite,
     /// Route to a custom URL.
     CustomURL,
+}
+
+impl fmt::Display for ServiceType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ServiceType::Container => write!(f, "Container"),
+            ServiceType::StaticSite => write!(f, "StaticSite"),
+            ServiceType::CustomURL => write!(f, "CustomURL"),
+        }
+    }
+}
+
+// Implement PartialEq<&str> for ServiceType
+impl PartialEq<&str> for ServiceType {
+    fn eq(&self, other: &&str) -> bool {
+        match self {
+            ServiceType::Container => *other == "Container",
+            ServiceType::StaticSite => *other == "StaticSite",
+            ServiceType::CustomURL => *other == "CustomURL",
+        }
+    }
 }
 
 /// SSL/TLS configuration for a service.

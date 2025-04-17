@@ -11,6 +11,8 @@ axum = { version = "0.6.18", features = ["headers", "macros", "form", "ws"] }
 tower = "0.4.13"
 tower-http = { version = "0.4.0", features = ["cors", "trace", "fs", "auth"] }
 tokio-tungstenite = "0.19.0"
+hyper = { version = "0.14", features = ["full"] }
+hyper-tls = "0.5"
 
 # Templating
 askama = { version = "0.12", features = ["with-axum"] }
@@ -48,6 +50,9 @@ dir = "src/templates"
 output_dir = "target/templates"
 
 [[bin]]
+name = "rustainer"
+path = "src/main.rs"
+
+[[bin]]
 name = "reset_admin"
 path = "src/bin/reset_admin.rs"
-output_dir = "target/templates"

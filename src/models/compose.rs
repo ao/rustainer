@@ -40,6 +40,17 @@ pub enum StackStatus {
     Error,
 }
 
+impl std::fmt::Display for StackStatus {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StackStatus::Up => write!(f, "Up"),
+            StackStatus::Down => write!(f, "Down"),
+            StackStatus::Partial => write!(f, "Partial"),
+            StackStatus::Error => write!(f, "Error"),
+        }
+    }
+}
+
 /// Represents a service in a Docker Compose stack.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ComposeService {

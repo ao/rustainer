@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Service Test</title>
+</head>
+<body>
+    <h1>Service List</h1>
+    <ul>
+        {% for service in services %}
+        <li>
+            <strong>{{ service.name }}</strong> ({{ service.service_type }})
+            <br>
+            Status: {% if service.enabled %}Enabled{% else %}Disabled{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

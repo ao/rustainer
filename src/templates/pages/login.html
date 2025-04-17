@@ -7,8 +7,9 @@
     <div class="login-card">
         <h2>Login to Rustainer</h2>
         <!-- Error message will be displayed here if needed -->
-        <div id="error-container" style="display: none;" class="alert alert-error">
-            Error message
+        {% if error_message != "" %}
+        <div id="error-container" class="alert alert-error">
+            {{ error_message }}
         </div>
         {% endif %}
         

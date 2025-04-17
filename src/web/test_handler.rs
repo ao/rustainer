@@ -1,25 +1,23 @@
 //! Test handler for template testing.
 
 use axum::response::{Html, IntoResponse};
-use askama::Template;
-
-/// Template for the test page.
-#[derive(Template)]
-#[template(path = "pages/test.html")]
-struct TestTemplate {}
 
 /// Handler for the test page.
 pub async fn test_handler() -> impl IntoResponse {
-    let template = TestTemplate {};
-    match template.render() {
-        Ok(html) => Html(html).into_response(),
-        Err(err) => {
-            tracing::error!("Failed to render test template: {}", err);
-            (
-                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                "Failed to render template",
-            )
-                .into_response()
-        }
-    }
+    // Use a direct HTML response
+    Html(r#"
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Test Page</title>
+        <link rel="stylesheet" href="/css/styles.css">
+    </head>
+    <body class="bg-gray-100 dark:bg-gray-900">
+        <div class="container mx-auto px-4 py-8">
+            <h1 class="text-2xl font-bold text-gray-800 dark:text-white">Test Page</h1>
+            <p class="text-gray-600 dark:text-gray-400">This is a test page.</p>
+        </div>
+    </body>
+    </html>
+    "#).into_response()
 }
