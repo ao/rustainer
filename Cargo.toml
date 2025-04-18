@@ -7,22 +7,23 @@ authors = ["Andrew O", "Rustainer Team"]
 
 [dependencies]
 # HTTP server and routing
-axum = { version = "0.6.18", features = ["headers", "macros", "form", "ws"] }
-tower = "0.4.13"
-tower-http = { version = "0.4.0", features = ["cors", "trace", "fs", "auth"] }
-tokio-tungstenite = "0.19.0"
-hyper = { version = "0.14", features = ["full"] }
-hyper-tls = "0.5"
+axum = { version = "0.7", features = ["macros", "ws"] }
+tower = "0.4"
+tower-http = { version = "0.5", features = ["cors", "trace", "fs", "auth"] }
+hyper = { version = "1.0", features = ["full"] }
+hyper-util = { version = "0.1", features = ["full"] }
+http-body-util = "0.1"
+bytes = "1.5"
 
 # Templating
 askama = { version = "0.12", features = ["with-axum"] }
-askama_axum = "0.3"
+askama_axum = "0.4"
 
 # Docker API client
 bollard = "0.19.0-rc1"
 
 # Async runtime
-tokio = { version = "1.28.2", features = ["full"] }
+tokio = { version = "1.35", features = ["full"] }
 
 # Serialization/Deserialization
 serde = { version = "1.0", features = ["derive"] }
@@ -30,21 +31,25 @@ serde_json = "1.0"
 serde_yaml = "0.9"
 
 # Database
-sqlx = { version = "0.6", features = ["runtime-tokio-rustls", "sqlite", "migrate", "macros", "chrono", "uuid"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "migrate", "macros", "chrono", "uuid"] }
 
 # Authentication
-jsonwebtoken = "8.3"
+jsonwebtoken = "9.2"
 argon2 = "0.5"
 
 # Utilities
 anyhow = "1.0"
+thiserror = "1.0"
 chrono = { version = "0.4", features = ["serde"] }
 dotenv = "0.15"
 futures = "0.3"
 rand = "0.8"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-uuid = { version = "1.3", features = ["v4", "serde"] }
+uuid = { version = "1.6", features = ["v4", "serde"] }
+config = "0.13"
+once_cell = "1.19"
+
 [package.metadata.askama]
 dir = "src/templates"
 output_dir = "target/templates"

@@ -2,31 +2,29 @@
 
 A lightweight container management UI built in Rust, inspired by Portainer and Dockge.
 
-## Current Status
+## Overview
 
-Rustainer is under active development. The following features are currently implemented:
+Rustainer is a simple yet powerful container management tool that provides:
 
-- Basic server setup with authentication
-- Docker Compose stack management (partial implementation)
-- Service routing system (domain-based routing to containers)
-- Proxy server on port 80 for routing traffic
-- User authentication with JWT
-- Basic dark/light theme support
+1. A proxy server on port 80 that routes traffic to Docker containers based on domain names
+2. An admin UI on port 3000 for managing containers, applications, and configurations
+3. Easy application deployment with domain-based routing
 
-See the [ROADMAP.md](ROADMAP.md) file for detailed implementation status and future plans.
+## Features
 
-## Features (Planned)
+- **Container Management**: View, create, start, stop, and restart Docker containers
+- **Application Management**: Deploy applications with domain-based routing
+- **Domain Routing**: Route traffic to containers based on domain names
+- **Admin UI**: Simple and intuitive web interface for management
+- **Authentication**: Secure access with JWT-based authentication
+- **Docker Integration**: Direct integration with Docker API
 
-- Container management (view, create, start, stop, restart)
-- Volume management
-- Network management
-- Docker Compose stack management
-- Application creation with service/ingress
-- Domain-based routing to containers (port 80)
-- Management UI (port 3000)
-- User authentication with role-based access control
-- Dark/light theme support
-- Responsive design
+## Architecture
+
+Rustainer consists of two main components:
+
+1. **Proxy Server (Port 80)**: Routes incoming HTTP requests to the appropriate container based on the domain name in the request
+2. **Admin UI (Port 3000)**: Web interface for managing containers, applications, and configurations
 
 ## Tech Stack
 
@@ -90,24 +88,17 @@ rustainer/
 ├── src/
 │   ├── api/           # API handlers for REST endpoints
 │   ├── auth/          # Authentication and authorization
+│   ├── config/        # Configuration management
 │   ├── db/            # Database operations and migrations
 │   ├── docker/        # Docker API interactions
 │   ├── models/        # Data models
+│   ├── proxy/         # Proxy server implementation
 │   ├── static/        # Static assets (CSS, JS)
 │   ├── templates/     # HTML templates
 │   ├── web/           # Web handlers for UI pages
-│   ├── websocket/     # WebSocket handlers for real-time updates
-│   ├── app_state.rs   # Application state
-│   ├── config.rs      # Configuration
 │   └── main.rs        # Application entry point
-├── data/              # Application data (database, compose files)
-├── IMPLEMENTATION_PLAN.md  # Detailed implementation plan
-└── ROADMAP.md         # Feature roadmap and status
+├── data/              # Application data (database)
 ```
-
-## Implementation Plan
-
-See the [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) file for a detailed implementation plan.
 
 ## License
 

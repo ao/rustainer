@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustainer - Settings</title>
+    <style>
+        :root {
+            --primary-color: #0f766e;
+            --secondary-color: #14b8a6;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --sidebar-active: #e2e8f0;
+        }
+
+        body.dark {
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --sidebar-bg: #1e293b;
+            --sidebar-active: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .nav-item-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            margin: 0;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .settings-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .settings-card h2 {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .button-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem 0;
+            }
+
+            .sidebar-header {
+                padding: 0 1rem 1rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar-footer {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Rustainer</h1>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="/applications" class="nav-item">
+                <span class="nav-item-icon">🚀</span>
+                Applications
+            </a>
+            <a href="/containers" class="nav-item">
+                <span class="nav-item-icon">📦</span>
+                Containers
+            </a>
+            <a href="/images" class="nav-item">
+                <span class="nav-item-icon">🖼️</span>
+                Images
+            </a>
+            <a href="/settings" class="nav-item active">
+                <span class="nav-item-icon">⚙️</span>
+                Settings
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Admin</div>
+                    <div class="user-role" id="userRole">Administrator</div>
+                </div>
+            </div>
+            
+            <button class="logout-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Settings</h1>
+            <button class="theme-toggle" id="themeToggle">🌓</button>
+        </div>
+        
+        <div class="settings-card">
+            <h2>User Settings</h2>
+            <form id="userSettingsForm">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" value="admin" disabled>
+                </div>
+                
+                <div class="form-group">
+                    <label for="currentPassword">Current Password</label>
+                    <input type="password" id="currentPassword" name="currentPassword" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="newPassword">New Password</label>
+                    <input type="password" id="newPassword" name="newPassword" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm New Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                </div>
+                
+                <button type="submit" class="button button-primary">Update Password</button>
+            </form>
+        </div>
+        
+        <div class="settings-card">
+            <h2>System Settings</h2>
+            <form id="systemSettingsForm">
+                <div class="form-group">
+                    <label for="proxyPort">Proxy Port</label>
+                    <input type="number" id="proxyPort" name="proxyPort" value="80">
+                </div>
+                
+                <div class="form-group">
+                    <label for="adminPort">Admin UI Port</label>
+                    <input type="number" id="adminPort" name="adminPort" value="3000">
+                </div>
+                
+                <div class="form-group">
+                    <label for="logLevel">Log Level</label>
+                    <select id="logLevel" name="logLevel">
+                        <option value="debug">Debug</option>
+                        <option value="info" selected>Info</option>
+                        <option value="warn">Warning</option>
+                        <option value="error">Error</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="button button-primary">Save Settings</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const theme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        });
+        
+        // Logout functionality
+        const logoutButton = document.getElementById('logoutButton');
+        
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me');
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                    document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+                    document.getElementById('username').value = user.username;
+                }
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+        
+        // Form submission handlers
+        document.getElementById('userSettingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/change-password', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        currentPassword,
+                        newPassword
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Password updated successfully');
+                    document.getElementById('currentPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to update password');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        });
+        
+        document.getElementById('systemSettingsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const proxyPort = document.getElementById('proxyPort').value;
+            const adminPort = document.getElementById('adminPort').value;
+            const logLevel = document.getElementById('logLevel').value;
+            
+            try {
+                const response = await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        proxyPort,
+                        adminPort,
+                        logLevel
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Settings updated successfully');
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to update settings');
+                }
+            } catch (error) {
+                alert('Network error. Please try again.');
+            }
+        });
+        
+        // Initialize
+        loadUserInfo();
+    </script>
+</body>
+</html>

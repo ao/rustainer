@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustainer - Applications</title>
+    <style>
+        :root {
+            --primary-color: #0f766e;
+            --secondary-color: #14b8a6;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --sidebar-active: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body.dark {
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --sidebar-bg: #1e293b;
+            --sidebar-active: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .nav-item-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            margin: 0;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .action-button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .action-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .action-button-icon {
+            margin-right: 0.5rem;
+        }
+
+        .applications-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .applications-table th,
+        .applications-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .applications-table th {
+            background-color: var(--sidebar-bg);
+            font-weight: 500;
+        }
+
+        .applications-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge.enabled {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-badge.disabled {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .table-action-button {
+            padding: 0.25rem 0.5rem;
+            background-color: var(--sidebar-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .table-action-button:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .table-action-button.danger {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .table-action-button.danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-description {
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem 0;
+            }
+
+            .sidebar-header {
+                padding: 0 1rem 1rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar-footer {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .applications-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Rustainer</h1>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="/applications" class="nav-item active">
+                <span class="nav-item-icon">🚀</span>
+                Applications
+            </a>
+            <a href="/containers" class="nav-item">
+                <span class="nav-item-icon">📦</span>
+                Containers
+            </a>
+            <a href="/images" class="nav-item">
+                <span class="nav-item-icon">🖼️</span>
+                Images
+            </a>
+            <a href="/settings" class="nav-item">
+                <span class="nav-item-icon">⚙️</span>
+                Settings
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Admin</div>
+                    <div class="user-role" id="userRole">Administrator</div>
+                </div>
+            </div>
+            
+            <button class="logout-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Applications</h1>
+            <div>
+                <button class="theme-toggle" id="themeToggle">🌓</button>
+                <a href="/applications/create" class="action-button">
+                    <span class="action-button-icon">➕</span>
+                    New Application
+                </a>
+            </div>
+        </div>
+        
+        <div id="applicationsContainer">
+            <!-- Applications will be loaded here -->
+            <div class="empty-state">
+                <div class="empty-state-icon">🚀</div>
+                <h2 class="empty-state-title">No applications yet</h2>
+                <p class="empty-state-description">Create your first application to get started</p>
+                <a href="/applications/create" class="action-button">
+                    <span class="action-button-icon">➕</span>
+                    New Application
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const theme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        });
+        
+        // Logout functionality
+        const logoutButton = document.getElementById('logoutButton');
+        
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me');
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                    document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+                }
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+        
+        // Load applications
+        async function loadApplications() {
+            try {
+                const response = await fetch('/api/applications');
+                
+                if (response.ok) {
+                    const applications = await response.json();
+                    const container = document.getElementById('applicationsContainer');
+                    
+                    if (applications.length === 0) {
+                        // Show empty state
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🚀</div>
+                                <h2 class="empty-state-title">No applications yet</h2>
+                                <p class="empty-state-description">Create your first application to get started</p>
+                                <a href="/applications/create" class="action-button">
+                                    <span class="action-button-icon">➕</span>
+                                    New Application
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        // Show applications table
+                        let tableHtml = `
+                            <table class="applications-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Domain</th>
+                                        <th>Port</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        applications.forEach(app => {
+                            tableHtml += `
+                                <tr>
+                                    <td>${app.name}</td>
+                                    <td>${app.domain}</td>
+                                    <td>${app.container_port}</td>
+                                    <td>
+                                        <span class="status-badge ${app.enabled ? 'enabled' : 'disabled'}">
+                                            ${app.enabled ? 'Enabled' : 'Disabled'}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="/applications/${app.id}" class="table-action-button">View</a>
+                                            <a href="/applications/${app.id}/edit" class="table-action-button">Edit</a>
+                                            <button class="table-action-button" onclick="toggleApplication('${app.id}', ${!app.enabled})">
+                                                ${app.enabled ? 'Disable' : 'Enable'}
+                                            </button>
+                                            <button class="table-action-button danger" onclick="deleteApplication('${app.id}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHtml += `
+                                </tbody>
+                            </table>
+                        `;
+                        
+                        container.innerHTML = tableHtml;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load applications:', error);
+            }
+        }
+        
+        // Toggle application (enable/disable)
+        async function toggleApplication(id, enable) {
+            try {
+                const endpoint = enable ? `/api/applications/${id}/enable` : `/api/applications/${id}/disable`;
+                const response = await fetch(endpoint, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    loadApplications();
+                }
+            } catch (error) {
+                console.error('Failed to toggle application:', error);
+            }
+        }
+        
+        // Delete application
+        async function deleteApplication(id) {
+            if (confirm('Are you sure you want to delete this application?')) {
+                try {
+                    const response = await fetch(`/api/applications/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        loadApplications();
+                    }
+                } catch (error) {
+                    console.error('Failed to delete application:', error);
+                }
+            }
+        }
+        
+        // Initialize
+        loadUserInfo();
+        loadApplications();
+    </script>
+</body>
+</html>

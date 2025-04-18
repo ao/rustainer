@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustainer - Create Application</title>
+    <style>
+        :root {
+            --primary-color: #0f766e;
+            --secondary-color: #14b8a6;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --sidebar-active: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body.dark {
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --sidebar-bg: #1e293b;
+            --sidebar-active: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .nav-item-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            margin: 0;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .form-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+        }
+
+        .form-group .help-text {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            opacity: 0.7;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .button-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .button-secondary {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .button-secondary:hover {
+            background-color: var(--sidebar-bg);
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 4px;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem 0;
+            }
+
+            .sidebar-header {
+                padding: 0 1rem 1rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar-footer {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Rustainer</h1>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="/applications" class="nav-item active">
+                <span class="nav-item-icon">🚀</span>
+                Applications
+            </a>
+            <a href="/containers" class="nav-item">
+                <span class="nav-item-icon">📦</span>
+                Containers
+            </a>
+            <a href="/images" class="nav-item">
+                <span class="nav-item-icon">🖼️</span>
+                Images
+            </a>
+            <a href="/settings" class="nav-item">
+                <span class="nav-item-icon">⚙️</span>
+                Settings
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Admin</div>
+                    <div class="user-role" id="userRole">Administrator</div>
+                </div>
+            </div>
+            
+            <button class="logout-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Create Application</h1>
+            <button class="theme-toggle" id="themeToggle">🌓</button>
+        </div>
+        
+        <div class="form-card">
+            <form id="createApplicationForm">
+                <div class="form-group">
+                    <label for="name">Application Name</label>
+                    <input type="text" id="name" name="name" required>
+                    <div class="help-text">A descriptive name for your application</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="domain">Domain Name</label>
+                    <input type="text" id="domain" name="domain" required>
+                    <div class="help-text">The domain name that will route to this application (e.g., app.example.com)</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="containerId">Container ID (Optional)</label>
+                    <select id="containerId" name="containerId">
+                        <option value="">Select a container</option>
+                        <!-- Containers will be loaded here -->
+                    </select>
+                    <div class="help-text">Select an existing container or leave empty to create later</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="containerPort">Container Port</label>
+                    <input type="number" id="containerPort" name="containerPort" value="80" required>
+                    <div class="help-text">The port that your application listens on inside the container</div>
+                </div>
+                
+                <div class="error-message" id="errorMessage"></div>
+                
+                <div class="form-actions">
+                    <a href="/applications" class="button button-secondary">Cancel</a>
+                    <button type="submit" class="button button-primary">Create Application</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const theme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        });
+        
+        // Logout functionality
+        const logoutButton = document.getElementById('logoutButton');
+        
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me');
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                    document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+                }
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+        
+        // Load containers for dropdown
+        async function loadContainers() {
+            try {
+                const response = await fetch('/api/containers');
+                
+                if (response.ok) {
+                    const containers = await response.json();
+                    const containerSelect = document.getElementById('containerId');
+                    
+                    containers.forEach(container => {
+                        const option = document.createElement('option');
+                        option.value = container.id;
+                        option.textContent = `${container.names[0]} (${container.id.substring(0, 12)})`;
+                        containerSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load containers:', error);
+            }
+        }
+        
+        // Form submission
+        const createApplicationForm = document.getElementById('createApplicationForm');
+        const errorMessage = document.getElementById('errorMessage');
+        
+        createApplicationForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = {
+                name: document.getElementById('name').value,
+                domain: document.getElementById('domain').value,
+                container_id: document.getElementById('containerId').value || null,
+                container_port: parseInt(document.getElementById('containerPort').value, 10)
+            };
+            
+            try {
+                const response = await fetch('/api/applications', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    // Redirect to applications list on success
+                    window.location.href = '/applications';
+                } else {
+                    const data = await response.json();
+                    errorMessage.textContent = data.error || 'Failed to create application';
+                    errorMessage.style.display = 'block';
+                }
+            } catch (error) {
+                errorMessage.textContent = 'Network error. Please try again.';
+                errorMessage.style.display = 'block';
+            }
+        });
+        
+        // Initialize
+        loadUserInfo();
+        loadContainers();
+    </script>
+</body>
+</html>

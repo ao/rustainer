@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustainer - Containers</title>
+    <style>
+        :root {
+            --primary-color: #0f766e;
+            --secondary-color: #14b8a6;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --sidebar-active: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body.dark {
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --sidebar-bg: #1e293b;
+            --sidebar-active: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .nav-item-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            margin: 0;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .action-button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .action-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .action-button-icon {
+            margin-right: 0.5rem;
+        }
+
+        .containers-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .containers-table th,
+        .containers-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .containers-table th {
+            background-color: var(--sidebar-bg);
+            font-weight: 500;
+        }
+
+        .containers-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .status-badge.running {
+            background-color: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+        }
+
+        .status-badge.stopped {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-color);
+        }
+
+        .status-badge.paused {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .table-action-button {
+            padding: 0.25rem 0.5rem;
+            background-color: var(--sidebar-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .table-action-button:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .table-action-button.danger {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .table-action-button.danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-description {
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem 0;
+            }
+
+            .sidebar-header {
+                padding: 0 1rem 1rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar-footer {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .containers-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Rustainer</h1>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="/applications" class="nav-item">
+                <span class="nav-item-icon">🚀</span>
+                Applications
+            </a>
+            <a href="/containers" class="nav-item active">
+                <span class="nav-item-icon">📦</span>
+                Containers
+            </a>
+            <a href="/images" class="nav-item">
+                <span class="nav-item-icon">🖼️</span>
+                Images
+            </a>
+            <a href="/settings" class="nav-item">
+                <span class="nav-item-icon">⚙️</span>
+                Settings
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Admin</div>
+                    <div class="user-role" id="userRole">Administrator</div>
+                </div>
+            </div>
+            
+            <button class="logout-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Containers</h1>
+            <div>
+                <button class="theme-toggle" id="themeToggle">🌓</button>
+                <a href="/containers/create" class="action-button">
+                    <span class="action-button-icon">➕</span>
+                    New Container
+                </a>
+            </div>
+        </div>
+        
+        <div id="containersContainer">
+            <!-- Containers will be loaded here -->
+            <div class="empty-state">
+                <div class="empty-state-icon">📦</div>
+                <h2 class="empty-state-title">No containers yet</h2>
+                <p class="empty-state-description">Create your first container to get started</p>
+                <a href="/containers/create" class="action-button">
+                    <span class="action-button-icon">➕</span>
+                    New Container
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const theme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        });
+        
+        // Logout functionality
+        const logoutButton = document.getElementById('logoutButton');
+        
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me');
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                    document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+                }
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+        
+        // Load containers
+        async function loadContainers() {
+            try {
+                const response = await fetch('/api/containers');
+                
+                if (response.ok) {
+                    const containers = await response.json();
+                    const container = document.getElementById('containersContainer');
+                    
+                    if (containers.length === 0) {
+                        // Show empty state
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📦</div>
+                                <h2 class="empty-state-title">No containers yet</h2>
+                                <p class="empty-state-description">Create your first container to get started</p>
+                                <a href="/containers/create" class="action-button">
+                                    <span class="action-button-icon">➕</span>
+                                    New Container
+                                </a>
+                            </div>
+                        `;
+                    } else {
+                        // Show containers table
+                        let tableHtml = `
+                            <table class="containers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Image</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        containers.forEach(container => {
+                            const status = container.state || 'unknown';
+                            const statusClass = status === 'running' ? 'running' : status === 'paused' ? 'paused' : 'stopped';
+                            
+                            tableHtml += `
+                                <tr>
+                                    <td>${container.names[0].replace(/^\//, '')}</td>
+                                    <td>${container.image}</td>
+                                    <td>
+                                        <span class="status-badge ${statusClass}">
+                                            ${status.charAt(0).toUpperCase() + status.slice(1)}
+                                        </span>
+                                    </td>
+                                    <td>${new Date(container.created * 1000).toLocaleString()}</td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="/containers/${container.id}" class="table-action-button">View</a>
+                                            ${status === 'running' ? 
+                                                `<button class="table-action-button" onclick="stopContainer('${container.id}')">Stop</button>` : 
+                                                `<button class="table-action-button" onclick="startContainer('${container.id}')">Start</button>`
+                                            }
+                                            <button class="table-action-button" onclick="restartContainer('${container.id}')">Restart</button>
+                                            <button class="table-action-button danger" onclick="deleteContainer('${container.id}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHtml += `
+                                </tbody>
+                            </table>
+                        `;
+                        
+                        container.innerHTML = tableHtml;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load containers:', error);
+            }
+        }
+        
+        // Container actions
+        async function startContainer(id) {
+            try {
+                const response = await fetch(`/api/containers/${id}/start`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    loadContainers();
+                }
+            } catch (error) {
+                console.error('Failed to start container:', error);
+            }
+        }
+        
+        async function stopContainer(id) {
+            try {
+                const response = await fetch(`/api/containers/${id}/stop`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    loadContainers();
+                }
+            } catch (error) {
+                console.error('Failed to stop container:', error);
+            }
+        }
+        
+        async function restartContainer(id) {
+            try {
+                const response = await fetch(`/api/containers/${id}/restart`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    loadContainers();
+                }
+            } catch (error) {
+                console.error('Failed to restart container:', error);
+            }
+        }
+        
+        async function deleteContainer(id) {
+            if (confirm('Are you sure you want to delete this container?')) {
+                try {
+                    const response = await fetch(`/api/containers/${id}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        loadContainers();
+                    }
+                } catch (error) {
+                    console.error('Failed to delete container:', error);
+                }
+            }
+        }
+        
+        // Initialize
+        loadUserInfo();
+        loadContainers();
+    </script>
+</body>
+</html>

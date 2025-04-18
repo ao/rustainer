@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustainer - Create Container</title>
+    <style>
+        :root {
+            --primary-color: #0f766e;
+            --secondary-color: #14b8a6;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --sidebar-active: #e2e8f0;
+        }
+
+        body.dark {
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --sidebar-bg: #1e293b;
+            --sidebar-active: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .nav-item-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            margin: 0;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .form-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.2);
+        }
+
+        .form-group .help-text {
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            opacity: 0.7;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .button-primary {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .button-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .button-secondary {
+            background-color: transparent;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .button-secondary:hover {
+            background-color: var(--sidebar-bg);
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: rgba(239, 68, 68, 0.1);
+            border-radius: 4px;
+            display: none;
+        }
+
+        .port-mapping-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .port-mapping-row input {
+            flex: 1;
+        }
+
+        .port-mapping-row button {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .add-port-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        .env-var-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .env-var-row input {
+            flex: 1;
+        }
+
+        .env-var-row button {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            width: 30px;
+            height: 30px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .add-env-var-button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem 0;
+            }
+
+            .sidebar-header {
+                padding: 0 1rem 1rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar-footer {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Rustainer</h1>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="/applications" class="nav-item">
+                <span class="nav-item-icon">🚀</span>
+                Applications
+            </a>
+            <a href="/containers" class="nav-item active">
+                <span class="nav-item-icon">📦</span>
+                Containers
+            </a>
+            <a href="/images" class="nav-item">
+                <span class="nav-item-icon">🖼️</span>
+                Images
+            </a>
+            <a href="/settings" class="nav-item">
+                <span class="nav-item-icon">⚙️</span>
+                Settings
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Admin</div>
+                    <div class="user-role" id="userRole">Administrator</div>
+                </div>
+            </div>
+            
+            <button class="logout-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Create Container</h1>
+            <button class="theme-toggle" id="themeToggle">🌓</button>
+        </div>
+        
+        <div class="form-card">
+            <form id="createContainerForm">
+                <div class="form-group">
+                    <label for="name">Container Name</label>
+                    <input type="text" id="name" name="name" required>
+                    <div class="help-text">A unique name for your container</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="image">Image</label>
+                    <select id="image" name="image" required>
+                        <option value="">Select an image</option>
+                        <!-- Images will be loaded here -->
+                    </select>
+                    <div class="help-text">Select a Docker image to run</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="ports">Port Mappings</label>
+                    <div id="portMappings">
+                        <div class="port-mapping-row">
+                            <input type="number" placeholder="Host Port" name="hostPorts[]" min="1" max="65535">
+                            <input type="number" placeholder="Container Port" name="containerPorts[]" min="1" max="65535">
+                            <button type="button" class="remove-port-button">-</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-port-button" id="addPortButton">+ Add Port Mapping</button>
+                    <div class="help-text">Map host ports to container ports</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="envVars">Environment Variables</label>
+                    <div id="envVars">
+                        <div class="env-var-row">
+                            <input type="text" placeholder="Key" name="envKeys[]">
+                            <input type="text" placeholder="Value" name="envValues[]">
+                            <button type="button" class="remove-env-var-button">-</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-env-var-button" id="addEnvVarButton">+ Add Environment Variable</button>
+                    <div class="help-text">Set environment variables for the container</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="volumes">Volumes</label>
+                    <div id="volumes">
+                        <div class="env-var-row">
+                            <input type="text" placeholder="Host Path" name="hostPaths[]">
+                            <input type="text" placeholder="Container Path" name="containerPaths[]">
+                            <button type="button" class="remove-env-var-button">-</button>
+                        </div>
+                    </div>
+                    <button type="button" class="add-env-var-button" id="addVolumeButton">+ Add Volume</button>
+                    <div class="help-text">Mount host directories into the container</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="restart">Restart Policy</label>
+                    <select id="restart" name="restart">
+                        <option value="no">No</option>
+                        <option value="always">Always</option>
+                        <option value="on-failure">On Failure</option>
+                        <option value="unless-stopped">Unless Stopped</option>
+                    </select>
+                    <div class="help-text">Specify when the container should restart</div>
+                </div>
+                
+                <div class="error-message" id="errorMessage"></div>
+                
+                <div class="form-actions">
+                    <a href="/containers" class="button button-secondary">Cancel</a>
+                    <button type="submit" class="button button-primary">Create Container</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const theme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        });
+        
+        // Logout functionality
+        const logoutButton = document.getElementById('logoutButton');
+        
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me');
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                    document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+                }
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+        
+        // Load images for dropdown
+        async function loadImages() {
+            try {
+                const response = await fetch('/api/images');
+                
+                if (response.ok) {
+                    const images = await response.json();
+                    const imageSelect = document.getElementById('image');
+                    
+                    images.forEach(image => {
+                        const option = document.createElement('option');
+                        const tag = image.repoTags && image.repoTags.length > 0 ? image.repoTags[0] : `${image.id.substring(7, 19)}`;
+                        option.value = tag;
+                        option.textContent = tag;
+                        imageSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load images:', error);
+            }
+        }
+        
+        // Port mapping functionality
+        document.getElementById('addPortButton').addEventListener('click', () => {
+            const portMappings = document.getElementById('portMappings');
+            const newRow = document.createElement('div');
+            newRow.className = 'port-mapping-row';
+            newRow.innerHTML = `
+                <input type="number" placeholder="Host Port" name="hostPorts[]" min="1" max="65535">
+                <input type="number" placeholder="Container Port" name="containerPorts[]" min="1" max="65535">
+                <button type="button" class="remove-port-button">-</button>
+            `;
+            portMappings.appendChild(newRow);
+            
+            newRow.querySelector('.remove-port-button').addEventListener('click', () => {
+                portMappings.removeChild(newRow);
+            });
+        });
+        
+        // Add event listener to the initial remove button
+        document.querySelector('.remove-port-button').addEventListener('click', function() {
+            const row = this.parentElement;
+            if (document.querySelectorAll('.port-mapping-row').length > 1) {
+                row.parentElement.removeChild(row);
+            }
+        });
+        
+        // Environment variables functionality
+        document.getElementById('addEnvVarButton').addEventListener('click', () => {
+            const envVars = document.getElementById('envVars');
+            const newRow = document.createElement('div');
+            newRow.className = 'env-var-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Key" name="envKeys[]">
+                <input type="text" placeholder="Value" name="envValues[]">
+                <button type="button" class="remove-env-var-button">-</button>
+            `;
+            envVars.appendChild(newRow);
+            
+            newRow.querySelector('.remove-env-var-button').addEventListener('click', () => {
+                envVars.removeChild(newRow);
+            });
+        });
+        
+        // Add event listener to the initial remove button
+        document.querySelector('.remove-env-var-button').addEventListener('click', function() {
+            const row = this.parentElement;
+            if (document.querySelectorAll('.env-var-row').length > 1) {
+                row.parentElement.removeChild(row);
+            }
+        });
+        
+        // Volumes functionality
+        document.getElementById('addVolumeButton').addEventListener('click', () => {
+            const volumes = document.getElementById('volumes');
+            const newRow = document.createElement('div');
+            newRow.className = 'env-var-row';
+            newRow.innerHTML = `
+                <input type="text" placeholder="Host Path" name="hostPaths[]">
+                <input type="text" placeholder="Container Path" name="containerPaths[]">
+                <button type="button" class="remove-env-var-button">-</button>
+            `;
+            volumes.appendChild(newRow);
+            
+            newRow.querySelector('.remove-env-var-button').addEventListener('click', () => {
+                volumes.removeChild(newRow);
+            });
+        });
+        
+        // Form submission
+        document.getElementById('createContainerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const image = document.getElementById('image').value;
+            const restart = document.getElementById('restart').value;
+            
+            // Collect port mappings
+            const hostPorts = Array.from(document.getElementsByName('hostPorts[]')).map(input => input.value);
+            const containerPorts = Array.from(document.getElementsByName('containerPorts[]')).map(input => input.value);
+            const portMappings = {};
+            
+            for (let i = 0; i < hostPorts.length; i++) {
+                if (hostPorts[i] && containerPorts[i]) {
+                    portMappings[containerPorts[i]] = hostPorts[i];
+                }
+            }
+            
+            // Collect environment variables
+            const envKeys = Array.from(document.getElementsByName('envKeys[]')).map(input => input.value);
+            const envValues = Array.from(document.getElementsByName('envValues[]')).map(input => input.value);
+            const env = {};
+            
+            for (let i = 0; i < envKeys.length; i++) {
+                if (envKeys[i]) {
+                    env[envKeys[i]] = envValues[i] || '';
+                }
+            }
+            
+            // Collect volumes
+            const hostPaths = Array.from(document.getElementsByName('hostPaths[]')).map(input => input.value);
+            const containerPaths = Array.from(document.getElementsByName('containerPaths[]')).map(input => input.value);
+            const volumes = [];
+            
+            for (let i = 0; i < hostPaths.length; i++) {
+                if (hostPaths[i] && containerPaths[i]) {
+                    volumes.push(`${hostPaths[i]}:${containerPaths[i]}`);
+                }
+            }
+            
+            const containerData = {
+                name,
+                image,
+                portMappings,
+                env,
+                volumes,
+                restart
+            };
+            
+            try {
+                const response = await fetch('/api/containers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(containerData)
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/containers';
+                } else {
+                    const data = await response.json();
+                    document.getElementById('errorMessage').textContent = data.error || 'Failed to create container';
+                    document.getElementById('errorMessage').style.display = 'block';
+                }
+            } catch (error) {
+                document.getElementById('errorMessage').textContent = 'Network error. Please try again.';
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        });
+        
+        // Initialize
+        loadUserInfo();
+        loadImages();
+    </script>
+</body>
+</html>

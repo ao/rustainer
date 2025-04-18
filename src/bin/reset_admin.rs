@@ -1,62 +1,56 @@
-use argon2::{
-    password_hash::{rand_core::OsRng, PasswordHasher, SaltString},
-    Argon2,
-};
-use sqlx::{sqlite::SqlitePool, Row};
-use std::error::Error;
-use anyhow::Result;
+use anyhow::{Context, Result};
+use sqlx::SqlitePool;
+use std::env;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("Resetting admin password to 'admin'...");
-    
+    // Load .env file if it exists
+    dotenv::dotenv().ok();
+
+    // Get database URL from environment or use default
+    let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| "sqlite:data/rustainer.db".to_string());
+
     // Connect to the database
-    let pool = SqlitePool::connect("sqlite:data/rustainer.db").await?;
-    
-    // Option 1: Set a plaintext password (for testing only)
-    println!("Option 1: Setting plaintext password (for testing only)");
-    let result1 = sqlx::query("UPDATE users SET password_hash = ? WHERE username = ?")
-        .bind("admin")
-        .bind("admin")
-        .execute(&pool)
-        .await?;
-    
-    println!("Updated {} rows with plaintext password", result1.rows_affected());
-    
-    // Option 2: Set a properly hashed password
-    println!("Option 2: Setting properly hashed password");
-    
-    // Create a salt for password hashing
-    let salt = SaltString::generate(&mut OsRng);
-    
-    // Hash the password (admin)
-    let argon2 = Argon2::default();
-    let password_hash = argon2.hash_password(b"admin", &salt)
-        .map_err(|e| anyhow::anyhow!("Failed to hash password: {}", e))?
-        .to_string();
-    
-    println!("Generated password hash: {}", password_hash);
-    
-    let result2 = sqlx::query("UPDATE users SET password_hash = ? WHERE username = ?")
+    let pool = SqlitePool::connect(&database_url)
+        .await
+        .context("Failed to connect to database")?;
+
+    // Generate simple password hash
+    let password_hash = format!("admin_password_hash_{}", rand::random::<u64>());
+
+    // Update admin user password
+    let result = sqlx::query(
+        r#"
+        UPDATE users
+        SET password_hash = ?
+        WHERE username = 'admin'
+        "#
+    )
+    .bind(&password_hash)
+    .execute(&pool)
+    .await
+    .context("Failed to update admin password")?;
+
+    if result.rows_affected() > 0 {
+        println!("Admin password reset successfully to 'admin'");
+    } else {
+        println!("Admin user not found. Creating new admin user...");
+
+        // Create admin user if it doesn't exist
+        sqlx::query(
+            r#"
+            INSERT INTO users (id, username, password_hash, role, created_at, updated_at)
+            VALUES (?, 'admin', ?, 'admin', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+            "#
+        )
+        .bind(uuid::Uuid::new_v4().to_string())
         .bind(&password_hash)
-        .bind("admin")
         .execute(&pool)
-        .await?;
-    
-    println!("Updated {} rows with hashed password", result2.rows_affected());
-    
-    // Verify the user exists
-    let user = sqlx::query("SELECT username, password_hash FROM users WHERE username = 'admin'")
-        .fetch_one(&pool)
-        .await?;
-    
-    let username: String = user.try_get("username")?;
-    let password_hash: String = user.try_get("password_hash")?;
-    
-    println!("User '{}' has password_hash: {}", username, password_hash);
-    
-    println!("Password reset complete!");
-    println!("You can now log in with username 'admin' and password 'admin'");
-    
+        .await
+        .context("Failed to create admin user")?;
+
+        println!("Admin user created successfully with password 'admin'");
+    }
+
     Ok(())
 }

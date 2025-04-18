@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rustainer - Images</title>
+    <style>
+        :root {
+            --primary-color: #0f766e;
+            --secondary-color: #14b8a6;
+            --background-color: #f8fafc;
+            --text-color: #1e293b;
+            --card-bg: #ffffff;
+            --border-color: #e2e8f0;
+            --sidebar-bg: #f1f5f9;
+            --sidebar-active: #e2e8f0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+
+        body.dark {
+            --background-color: #0f172a;
+            --text-color: #e2e8f0;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --sidebar-bg: #1e293b;
+            --sidebar-active: #334155;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
+            padding: 1.5rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 0 1.5rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .sidebar-header h1 {
+            color: var(--primary-color);
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .sidebar-nav {
+            padding: 1.5rem 0;
+            flex-grow: 1;
+        }
+
+        .nav-item {
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+
+        .nav-item:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .nav-item.active {
+            background-color: var(--sidebar-active);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .nav-item-icon {
+            margin-right: 0.75rem;
+            width: 20px;
+            height: 20px;
+        }
+
+        .sidebar-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.75rem;
+            font-weight: bold;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-role {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .logout-button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .logout-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            margin: 0;
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-color);
+            cursor: pointer;
+            font-size: 1.5rem;
+            padding: 0.5rem;
+        }
+
+        .action-button {
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .action-button:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .action-button-icon {
+            margin-right: 0.5rem;
+        }
+
+        .images-table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .images-table th,
+        .images-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .images-table th {
+            background-color: var(--sidebar-bg);
+            font-weight: 500;
+        }
+
+        .images-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .table-action-button {
+            padding: 0.25rem 0.5rem;
+            background-color: var(--sidebar-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .table-action-button:hover {
+            background-color: var(--sidebar-active);
+        }
+
+        .table-action-button.danger {
+            color: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        .table-action-button.danger:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+        }
+
+        .empty-state-title {
+            font-size: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-description {
+            margin-bottom: 1.5rem;
+            opacity: 0.7;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 2rem;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-color);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 1rem 0;
+            }
+
+            .sidebar-header {
+                padding: 0 1rem 1rem;
+            }
+
+            .nav-item {
+                padding: 0.75rem 1rem;
+            }
+
+            .sidebar-footer {
+                padding: 1rem;
+            }
+
+            .main-content {
+                padding: 1rem;
+            }
+
+            .images-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>Rustainer</h1>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="/dashboard" class="nav-item">
+                <span class="nav-item-icon">📊</span>
+                Dashboard
+            </a>
+            <a href="/applications" class="nav-item">
+                <span class="nav-item-icon">🚀</span>
+                Applications
+            </a>
+            <a href="/containers" class="nav-item">
+                <span class="nav-item-icon">📦</span>
+                Containers
+            </a>
+            <a href="/images" class="nav-item active">
+                <span class="nav-item-icon">🖼️</span>
+                Images
+            </a>
+            <a href="/settings" class="nav-item">
+                <span class="nav-item-icon">⚙️</span>
+                Settings
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar" id="userAvatar">A</div>
+                <div>
+                    <div class="user-name" id="userName">Admin</div>
+                    <div class="user-role" id="userRole">Administrator</div>
+                </div>
+            </div>
+            
+            <button class="logout-button" id="logoutButton">Logout</button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Docker Images</h1>
+            <div>
+                <button class="theme-toggle" id="themeToggle">🌓</button>
+                <button class="action-button" id="pullImageButton">
+                    <span class="action-button-icon">⬇️</span>
+                    Pull Image
+                </button>
+            </div>
+        </div>
+        
+        <div id="imagesContainer">
+            <!-- Images will be loaded here -->
+            <div class="empty-state">
+                <div class="empty-state-icon">🖼️</div>
+                <h2 class="empty-state-title">No images yet</h2>
+                <p class="empty-state-description">Pull your first Docker image to get started</p>
+                <button class="action-button" id="emptyStatePullButton">
+                    <span class="action-button-icon">⬇️</span>
+                    Pull Image
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pull Image Modal -->
+    <div class="modal" id="pullImageModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Pull Docker Image</h2>
+                <button class="modal-close" id="closeModal">&times;</button>
+            </div>
+            <form id="pullImageForm">
+                <div class="form-group">
+                    <label for="imageTag">Image Name</label>
+                    <input type="text" id="imageTag" name="imageTag" placeholder="e.g., nginx:latest" required>
+                    <div class="help-text">Enter the image name and tag (e.g., nginx:latest)</div>
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" class="button button-secondary" id="cancelPull">Cancel</button>
+                    <button type="submit" class="button button-primary">Pull Image</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+        
+        // Check for saved theme preference or use preferred color scheme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            body.classList.add('dark');
+        }
+        
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark');
+            const theme = body.classList.contains('dark') ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            
+            // Send theme preference to server
+            fetch('/api/theme/toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        });
+        
+        // Logout functionality
+        const logoutButton = document.getElementById('logoutButton');
+        
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Logout failed:', error);
+            }
+        });
+        
+        // Load user info
+        async function loadUserInfo() {
+            try {
+                const response = await fetch('/api/auth/me');
+                
+                if (response.ok) {
+                    const user = await response.json();
+                    document.getElementById('userName').textContent = user.username;
+                    document.getElementById('userRole').textContent = user.role.charAt(0).toUpperCase() + user.role.slice(1);
+                    document.getElementById('userAvatar').textContent = user.username.charAt(0).toUpperCase();
+                }
+            } catch (error) {
+                console.error('Failed to load user info:', error);
+            }
+        }
+        
+        // Load images
+        async function loadImages() {
+            try {
+                const response = await fetch('/api/images');
+                
+                if (response.ok) {
+                    const images = await response.json();
+                    const container = document.getElementById('imagesContainer');
+                    
+                    if (images.length === 0) {
+                        // Show empty state
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🖼️</div>
+                                <h2 class="empty-state-title">No images yet</h2>
+                                <p class="empty-state-description">Pull your first Docker image to get started</p>
+                                <button class="action-button" id="emptyStatePullButton">
+                                    <span class="action-button-icon">⬇️</span>
+                                    Pull Image
+                                </button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('emptyStatePullButton').addEventListener('click', openPullImageModal);
+                    } else {
+                        // Show images table
+                        let tableHtml = `
+                            <table class="images-table">
+                                <thead>
+                                    <tr>
+                                        <th>Repository</th>
+                                        <th>Tag</th>
+                                        <th>Image ID</th>
+                                        <th>Size</th>
+                                        <th>Created</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                        `;
+                        
+                        images.forEach(image => {
+                            const repoTags = image.repoTags || [];
+                            const repo = repoTags.length > 0 ? repoTags[0].split(':')[0] : '<none>';
+                            const tag = repoTags.length > 0 ? repoTags[0].split(':')[1] : '<none>';
+                            const shortId = image.id.substring(7, 19);
+                            const size = formatBytes(image.size);
+                            const created = new Date(image.created * 1000).toLocaleString();
+                            
+                            tableHtml += `
+                                <tr>
+                                    <td>${repo}</td>
+                                    <td>${tag}</td>
+                                    <td>${shortId}</td>
+                                    <td>${size}</td>
+                                    <td>${created}</td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <button class="table-action-button" onclick="createContainer('${repoTags[0] || shortId}')">Create Container</button>
+                                            <button class="table-action-button danger" onclick="deleteImage('${image.id}')">Delete</button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        
+                        tableHtml += `
+                                </tbody>
+                            </table>
+                        `;
+                        
+                        container.innerHTML = tableHtml;
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to load images:', error);
+            }
+        }
+        
+        // Format bytes to human-readable size
+        function formatBytes(bytes, decimals = 2) {
+            if (bytes === 0) return '0 Bytes';
+            
+            const k = 1024;
+            const dm = decimals < 0 ? 0 : decimals;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+            
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+        }
+        
+        // Create container from image
+        function createContainer(imageTag) {
+            window.location.href = `/containers/create?image=${encodeURIComponent(imageTag)}`;
+        }
+        
+        // Delete image
+        async function deleteImage(imageId) {
+            if (confirm('Are you sure you want to delete this image?')) {
+                try {
+                    const response = await fetch(`/api/images/${imageId}`, {
+                        method: 'DELETE'
+                    });
+                    
+                    if (response.ok) {
+                        loadImages();
+                    } else {
+                        const data = await response.json();
+                        alert(data.error || 'Failed to delete image');
+                    }
+                } catch (error) {
+                    console.error('Failed to delete image:', error);
+                    alert('Network error. Please try again.');
+                }
+            }
+        }
+        
+        // Pull image modal functionality
+        const pullImageModal = document.getElementById('pullImageModal');
+        const pullImageButton = document.getElementById('pullImageButton');
+        const closeModal = document.getElementById('closeModal');
+        const cancelPull = document.getElementById('cancelPull');
+        
+        function openPullImageModal() {
+            pullImageModal.style.display = 'flex';
+        }
+        
+        function closePullImageModal() {
+            pullImageModal.style.display = 'none';
+        }
+        
+        pullImageButton.addEventListener('click', openPullImageModal);
+        closeModal.addEventListener('click', closePullImageModal);
+        cancelPull.addEventListener('click', closePullImageModal);
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === pullImageModal) {
+                closePullImageModal();
+            }
+        });
+        
+        // Pull image form submission
+        document.getElementById('pullImageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const imageTag = document.getElementById('imageTag').value;
+            
+            try {
+                const response = await fetch('/api/images/pull', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ imageTag })
+                });
+                
+                if (response.ok) {
+                    closePullImageModal();
+                    alert(`Successfully pulled image: ${imageTag}`);
+                    loadImages();
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Failed to pull image');
+                }
+            } catch (error) {
+                console.error('Failed to pull image:', error);
+                alert('Network error. Please try again.');
+            }
+        });
+        
+        // Initialize
+        loadUserInfo();
+        loadImages();
+    </script>
+</body>
+</html>
