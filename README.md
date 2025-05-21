@@ -47,7 +47,7 @@ Rustainer consists of two main components:
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/rustainer.git
+   git clone https://github.com/ao/rustainer.git
    cd rustainer
    ```
 
